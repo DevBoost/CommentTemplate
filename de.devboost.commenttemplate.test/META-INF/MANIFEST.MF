@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Test
+Bundle-SymbolicName: de.devboost.commenttemplate.test
+Bundle-Version: 1.0.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Require-Bundle: org.junit4,
+ de.devboost.commenttemplate,
+ de.devboost.onthefly_javac,
+ org.emftext.language.java,
+ org.emftext.language.java.resource,
+ org.emftext.language.java.resource.java,
+ org.eclipse.emf,
+ org.eclipse.emf.ecore

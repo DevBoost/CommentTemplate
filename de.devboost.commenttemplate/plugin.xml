@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.jdt.core.compilationParticipant">
+      <compilationParticipant
+            class="de.devboost.commenttemplate.builder.CommentTemplateCompilationParticipant"
+            id="de.devboost.commenttemplate.builder.CommentTemplateCompilationParticipant"
+            modifiesEnvironment="true">
+      </compilationParticipant>
+   </extension>
+
+</plugin>
