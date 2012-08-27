@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site associateSitesURL="http://www.devboost.de/commenttemplate/update_trunk/associateSites.xml">
+   <description>
+      Update site for CommentTemplate
+   </description>
+   <feature url="features/de.devboost.commenttemplate_0.0.0.v0.jar" id="de.devboost.commenttemplate" version="0.0.0.v0">
+      <category name="CommentTemplate"/>
+   </feature>
+    <category-def name="CommentTemplate" label="CommentTemplate">
+      <description>
+         CommentTemplate - a code generation extension for Java.
+      </description>
+   </category-def>
+</site>
