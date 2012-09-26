@@ -999,7 +999,6 @@ public class CommentTemplateCompiler {
 				while (matcher.find()) {
 					if (matcher.groupCount() == 1) {
 					    String s = matcher.group(0);
-					    System.out.println(s);
 					    brokenVariableReferences.add(s);
 					}
 				}
