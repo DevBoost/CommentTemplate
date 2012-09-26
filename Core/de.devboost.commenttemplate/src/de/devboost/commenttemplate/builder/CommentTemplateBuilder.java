@@ -15,6 +15,8 @@
  ******************************************************************************/
 package de.devboost.commenttemplate.builder;
 
+import java.util.Set;
+
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 
@@ -26,13 +28,13 @@ public class CommentTemplateBuilder {
 		return uri.lastSegment().endsWith(CommentTemplateCompiler.SOURCE_SUFFIX + ".java");
 	}
 
-	public URI build(Resource resource) {
+	public URI build(Resource resource, Set<String> brokenVariableReferences) {
 		if (!resource.getErrors().isEmpty()) {
 			return null;
 		}
 		try {
 			Resource compiledResource = 
-					new CommentTemplateCompiler().compileAndSave(resource);
+					new CommentTemplateCompiler().compileAndSave(resource, brokenVariableReferences);
 			if (compiledResource == null) {
 				return null;
 			}

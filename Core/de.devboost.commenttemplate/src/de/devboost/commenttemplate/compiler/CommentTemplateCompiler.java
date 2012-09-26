@@ -176,11 +176,11 @@ public class CommentTemplateCompiler {
 		if (resource == null) {
 			return null;
 		}
-		return compileAndSave(resource);
+		return compileAndSave(resource, new LinkedHashSet<String>());
 	}
 	
-	public Resource compileAndSave(Resource resource) {
-		boolean success = compile(resource);
+	public Resource compileAndSave(Resource resource, Set<String> brokenVariableReferences) {
+		boolean success = compile(resource, brokenVariableReferences);
 		Resource compiledResource = null;
 		if (success) {
 			compiledResource = save(resource);
@@ -188,7 +188,7 @@ public class CommentTemplateCompiler {
 		return compiledResource;
 	}
 
-	public boolean compile(Resource resource) {
+	public boolean compile(Resource resource, Set<String> brokenVariableReferences) {
 		if (resource.getContents().isEmpty()) {
 			return false;
 		}
@@ -205,7 +205,7 @@ public class CommentTemplateCompiler {
 		Set<AnnotationInstance> annotationsToRemove = new LinkedHashSet<AnnotationInstance>();
 		boolean containsCommentTemplateMethods = false;
 		for (Method method : classifier.getMethods()) {
-			containsCommentTemplateMethods |= compileMethod(method, annotationsToRemove);
+			containsCommentTemplateMethods |= compileMethod(method, annotationsToRemove, brokenVariableReferences);
 		}
 		
 		for (AnnotationInstance annotationToRemove : annotationsToRemove) {
@@ -264,7 +264,7 @@ public class CommentTemplateCompiler {
 		return compiledResource;
 	}
 
-	private boolean compileMethod(Method method, Set<AnnotationInstance> annotationsToRemove) {
+	private boolean compileMethod(Method method, Set<AnnotationInstance> annotationsToRemove, Set<String> brokenVariableReferences) {
 		setLineBreak(method, annotationsToRemove);
 		
 		AnnotationInstance commentTemplateAnnotationInstance = getAnnotationInstance(method, commentTemplateAnnotation);
@@ -276,7 +276,7 @@ public class CommentTemplateCompiler {
 				variableAntiQuotation = variableAntiQuotations.get(0);
 				// TODO add warning if there is multiple VariableAntiQuotation annotations
 			}
-			compileCommentTemplateMethod((ClassMethod) method, replacementRules, variableAntiQuotation);
+			compileCommentTemplateMethod((ClassMethod) method, replacementRules, variableAntiQuotation, brokenVariableReferences);
 
 			// we schedule the annotations for removal, but we not remove them 
 			// right away, because the annotations that apply to this method may
@@ -339,7 +339,7 @@ public class CommentTemplateCompiler {
 		return instances;
 	}
 
-	private void compileCommentTemplateMethod(ClassMethod m, List<AnnotationInstance> replacementRules, AnnotationInstance variableAntiQuotation) {
+	private void compileCommentTemplateMethod(ClassMethod m, List<AnnotationInstance> replacementRules, AnnotationInstance variableAntiQuotation, Set<String> brokenVariableReferences) {
 		ConcreteClassifier sbClass = m.getConcreteClassifier(StringBuilder.class.getName());
 		
 		LocalVariableStatement lvs = StatementsFactory.eINSTANCE.createLocalVariableStatement();
@@ -355,7 +355,7 @@ public class CommentTemplateCompiler {
 		lvs.setVariable(lv);
 		m.getStatements().add(0, lvs);
 		
-		convertCommentsToStrings(m, lv, replacementRules, variableAntiQuotation);
+		convertCommentsToStrings(m, lv, replacementRules, variableAntiQuotation, brokenVariableReferences);
 		
 		Statement lastStatement = m.getStatements().get(m.getStatements().size() - 1);
 		if (!(lastStatement instanceof Return)) {
@@ -370,7 +370,7 @@ public class CommentTemplateCompiler {
 		returnStatement.setReturnValue(ir);
 	}
 
-	private void convertCommentsToStrings(ClassMethod method, LocalVariable stringBuilder, List<AnnotationInstance> replacementRules, AnnotationInstance variableAntiQuotation) {
+	private void convertCommentsToStrings(ClassMethod method, LocalVariable stringBuilder, List<AnnotationInstance> replacementRules, AnnotationInstance variableAntiQuotation, Set<String> brokenVariableReferences) {
 		List<AddStatementOperation> operations = new ArrayList<CommentTemplateCompiler.AddStatementOperation>();
 	 	
 		List<Variable> stringFields = getFields(method);
@@ -399,7 +399,8 @@ public class CommentTemplateCompiler {
 					visibleStringVariables, 
 					leadingTabs,
 					endedWithLineBreak, 
-					commentUnit);
+					commentUnit,
+					brokenVariableReferences);
 		}
 		
 		for (AddStatementOperation op : operations) {
@@ -466,7 +467,8 @@ public class CommentTemplateCompiler {
 			List<AddStatementOperation> operations,
 			List<Variable> visibleStringVariables, int leadingTabs,
 			boolean endedWithLineBreak, 
-			CommentUnit commentUnit) {
+			CommentUnit commentUnit,
+			Set<String> brokenVariableReferences) {
 		
 		
 		List<String> comments = commentUnit.getComments();
@@ -478,6 +480,7 @@ public class CommentTemplateCompiler {
 			
 			int tabsToRemove = leadingTabsForContainer;
 			final List<Expression> stringExpressions = convertCommentToStringExpressions(container, comment, visibleStringVariables, replacementRules, variableAntiQuotation, tabsToRemove, endedWithLineBreak);
+			findBrokenReferences(stringExpressions, variableAntiQuotation, brokenVariableReferences);
 			endedWithLineBreak = endsWithLineBreak(comment);
 			final EObject theElement = commentUnit.getStatement();
 			operations.add(new AddStatementOperation() {
@@ -975,5 +978,32 @@ public class CommentTemplateCompiler {
 			nextToken = scanner.getNextToken();
 		}
 		return comments;
+	}
+	
+	/**
+	 * Finds the names of variable references (using the defined VariableAntiQuotation)
+	 * that persist Strings in the compiled template.
+	 */
+	private void findBrokenReferences(List<Expression> stringExpressions, AnnotationInstance variableAntiQuotation, Set<String> brokenVariableReferences) {
+		if (variableAntiQuotation == null) {
+			return;
+		}
+		String regex = getStringValue(variableAntiQuotation);
+		regex = "(" + String.format("\\Q" + regex + "\\E", "\\E\\w*\\Q") + ")";
+		Pattern pattern = Pattern.compile(regex);
+		
+		for (Expression expression : stringExpressions) {
+			if (expression instanceof StringReference) {
+				StringReference stringReference = (StringReference) expression;
+				Matcher matcher = pattern.matcher(stringReference.getValue());
+				while (matcher.find()) {
+					if (matcher.groupCount() == 1) {
+					    String s = matcher.group(0);
+					    System.out.println(s);
+					    brokenVariableReferences.add(s);
+					}
+				}
+			}
+		}
 	}
 }
