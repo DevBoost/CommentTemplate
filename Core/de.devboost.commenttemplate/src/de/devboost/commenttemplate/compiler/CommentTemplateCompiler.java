@@ -85,6 +85,7 @@ import org.emftext.language.java.variables.Variable;
 import org.emftext.language.java.variables.VariablesFactory;
 
 import de.devboost.commenttemplate.CommentTemplate;
+import de.devboost.commenttemplate.CommentTemplatePlugin;
 import de.devboost.commenttemplate.LineBreak;
 import de.devboost.commenttemplate.ReplacementRule;
 import de.devboost.commenttemplate.VariableAntiQuotation;
@@ -169,8 +170,7 @@ public class CommentTemplateCompiler {
 		try {
 			resource = resourceSet.getResource(sourceURI, true);	
 		} catch (Exception e) {
-			// TODO throw this instead?
-			e.printStackTrace();
+			CommentTemplatePlugin.logError("Exception while compiling template class.", e);
 		}
 		
 		if (resource == null) {
@@ -453,9 +453,8 @@ public class CommentTemplateCompiler {
 		};
 		try {
 			printer.print(element);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (IOException ioe) {
+			CommentTemplatePlugin.logError("IOException while printing template fragment.", ioe);
 		}
 		return units;
 	}
@@ -695,7 +694,7 @@ public class CommentTemplateCompiler {
 		return variableAccess;
 	}
 
-	// TODO to JaMoPP metamodel
+	// TODO move to JaMoPP metamodel
 	private Reference createMethodCall(
 			Reference reference,
 			Type type, 
@@ -705,11 +704,8 @@ public class CommentTemplateCompiler {
 		MethodCall methodCall = ReferencesFactory.eINSTANCE.createMethodCall();
 		methodCall.getArguments().addAll(arguments);
 		
-		//IdentifierReference variableRef = ReferencesFactory.eINSTANCE.createIdentifierReference();
-		//variableRef.setTarget(variable);
 		reference.setNext(methodCall);
 
-		//Type type = variable.getTypeReference().getTarget();
 		if (type instanceof ConcreteClassifier) {
 			ConcreteClassifier classifier = (ConcreteClassifier) type;
 			EList<Member> members = classifier.getMembersByName(methodName);
@@ -734,24 +730,14 @@ public class CommentTemplateCompiler {
 		
 		// first, remove everything before the comment opener
 		comment = removeLeadingBreaks(comment);
-		
-		//int leadingTabs = countLeadingTabs(comment);
 		comment = removeCommentDelimiters(comment);
 		
 		List<String> commentLines = split(comment);
 		for (int i = 0; i < commentLines.size(); i++) {
 			String commentLine = commentLines.get(i);
-			//commentLine = commentLine.replace("\r", "");
 			commentLine = removeLeadingTabs(commentLine, leadingTabs, endedWithLineBreak || i > 0);
 			result.add(commentLine);
 		}
-		/*
-		// if the last character of the comment is a line break, we must add an
-		// empty line to make sure that the line break is printed.
-		if (comment.endsWith("\n") || comment.endsWith("\r")) {
-			result.add("");
-		}
-		*/
 		
 		return result;
 	}
@@ -897,7 +883,7 @@ public class CommentTemplateCompiler {
 		return ref;
 	}
 
-	//TODO add a setType() method to JaMoPP metamodel
+	// TODO add a setType() method to JaMoPP metamodel
 	private TypeReference createTypeReference(ConcreteClassifier concreteClassifier) {
 		ClassifierReference ref = TypesFactory.eINSTANCE.createClassifierReference();
 		ref.setTarget(concreteClassifier);
@@ -919,7 +905,7 @@ public class CommentTemplateCompiler {
 		return es;
 	}
 
-	//TODO move to JaMoPP metamodel
+	// TODO move to JaMoPP metamodel
 	private AnnotationInstance getAnnotationInstance(AnnotableAndModifiable element,
 			ConcreteClassifier annotationType) {
 		for (AnnotationInstanceOrModifier aiom : element.getAnnotationsAndModifiers()) {
