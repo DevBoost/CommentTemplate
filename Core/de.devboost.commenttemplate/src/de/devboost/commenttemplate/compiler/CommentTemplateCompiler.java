@@ -594,7 +594,7 @@ public class CommentTemplateCompiler {
 	}
 
 	/**
-	 * Returns all field that are provided by the classifier that contains the
+	 * Returns all fields that are provided by the classifier that contains the
 	 * given method. These fields are accessible from within templates.
 	 */
 	private List<Variable> getFields(ClassMethod method) {
