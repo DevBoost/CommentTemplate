@@ -195,8 +195,7 @@ public class CommentTemplateCompiler {
 		if (!(resource.getContents().get(0) instanceof CompilationUnit)) {
 			return false;
 		}
-		CompilationUnit cu = (CompilationUnit) 
-				resource.getContents().get(0);
+		CompilationUnit cu = (CompilationUnit) resource.getContents().get(0);
 		
 		getAnnotationClasses(cu);
 		
