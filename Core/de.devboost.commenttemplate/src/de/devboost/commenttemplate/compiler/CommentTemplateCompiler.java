@@ -50,6 +50,7 @@ import org.emftext.language.java.imports.Import;
 import org.emftext.language.java.instantiations.InstantiationsFactory;
 import org.emftext.language.java.instantiations.NewConstructorCall;
 import org.emftext.language.java.members.ClassMethod;
+import org.emftext.language.java.members.Constructor;
 import org.emftext.language.java.members.Field;
 import org.emftext.language.java.members.Member;
 import org.emftext.language.java.members.Method;
@@ -247,20 +248,41 @@ public class CommentTemplateCompiler {
 	}
 
 	private Resource save(Resource resource) {
-		String compiledClassName = resource.getURI().trimFileExtension().lastSegment();
-		compiledClassName = compiledClassName.substring(0, compiledClassName.length() - SOURCE_SUFFIX.length());
+		String compiledClassName = getNameForCompilationResult(resource);
 		URI compiledURI = resource.getURI().trimSegments(1).appendSegment(compiledClassName).appendFileExtension("java");
 		compiledURI = URI.createURI(compiledURI.toString().replaceFirst("/src/", "/" + SRC_GEN_FOLDER + "/")); //TODO needs to be more precise
 		Resource compiledResource = resource.getResourceSet().createResource(compiledURI);
 		compiledResource.getContents().addAll(resource.getContents());
 		try {
 			CompilationUnit cu = (CompilationUnit) compiledResource.getContents().get(0);
-			cu.getClassifiers().get(0).setName(compiledClassName);
+			List<ConcreteClassifier> classifiers = cu.getClassifiers();
+			if (!classifiers.isEmpty()) {
+				ConcreteClassifier mainClassifier = classifiers.get(0);
+				renameClassifier(mainClassifier, compiledClassName);
+			}
+			
 			compiledResource.save(null);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return compiledResource;
+	}
+
+	private void renameClassifier(ConcreteClassifier classifier,
+			String newClassName) {
+		// fix the name of the compilation result (class must be renamed)
+		classifier.setName(newClassName);
+		// fix the names of the constructors (must match the new class name)
+		List<Constructor> constructors = classifier.getConstructors();
+		for (Constructor constructor : constructors) {
+			constructor.setName(newClassName);
+		}
+	}
+
+	private String getNameForCompilationResult(Resource resource) {
+		String compiledClassName = resource.getURI().trimFileExtension().lastSegment();
+		compiledClassName = compiledClassName.substring(0, compiledClassName.length() - SOURCE_SUFFIX.length());
+		return compiledClassName;
 	}
 
 	private boolean compileMethod(Method method, Set<AnnotationInstance> annotationsToRemove, Set<String> brokenVariableReferences) {
