@@ -394,7 +394,7 @@ public class CommentTemplateCompiler {
 	private void convertCommentsToStrings(ClassMethod method, LocalVariable stringBuilder, List<AnnotationInstance> replacementRules, AnnotationInstance variableAntiQuotation, Set<String> brokenVariableReferences) {
 		List<AddStatementOperation> operations = new ArrayList<CommentTemplateCompiler.AddStatementOperation>();
 	 	
-		List<Variable> stringFields = getFields(method);
+		List<Field> stringFields = getFields(method);
 		List<Variable> stringVariables = getLocalStringVariables(method);
 		List<Variable> visibleStringVariables = new ArrayList<Variable>();
 		visibleStringVariables.addAll(stringFields);
@@ -597,12 +597,24 @@ public class CommentTemplateCompiler {
 	 * Returns all fields that are provided by the classifier that contains the
 	 * given method. These fields are accessible from within templates.
 	 */
-	private List<Variable> getFields(ClassMethod method) {
+	private List<Field> getFields(ClassMethod method) {
 		ConcreteClassifier enclosingClass = method.getParentByType(ConcreteClassifier.class);
 		List<Field> fields = enclosingClass.getFields();
-		List<Variable> result = new ArrayList<Variable>();
+		List<Field> result = new ArrayList<Field>();
 		for (Field field : fields) {
 			result.add(field);
+		}
+		// add non-private fields from super classes
+		List<ConcreteClassifier> superTypes = enclosingClass.getAllSuperClassifiers();
+		for (ConcreteClassifier superType : superTypes) {
+			EList<Field> superFields = superType.getFields();
+			for (Field field : superFields) {
+				if (field.isPrivate()) {
+					// ignore private fields
+					continue;
+				}
+				result.add(field);
+			}
 		}
 		return result;
 	}
