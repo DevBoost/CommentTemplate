@@ -53,6 +53,17 @@ public class CommentTemplateCompilationParticipant extends CompilationParticipan
 
 	@Override
 	public void buildStarting(BuildContext[] files, boolean isBatch) {
+		// we must catch exception to avoid that the build process is blocked
+		// if something goes wrong with CommentTemplate
+		try {
+			buildUnsafe(files);
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+	}
+
+	private void buildUnsafe(BuildContext[] files) {
 		ResourceSetImpl resourceSet = new ResourceSetImpl();
 		//markers are already created by the JDT
 		resourceSet.getLoadOptions().put(
