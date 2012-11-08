@@ -250,7 +250,8 @@ public class CommentTemplateCompiler {
 	private Resource save(Resource resource) {
 		String compiledClassName = getNameForCompilationResult(resource);
 		URI compiledURI = resource.getURI().trimSegments(1).appendSegment(compiledClassName).appendFileExtension("java");
-		compiledURI = URI.createURI(compiledURI.toString().replaceFirst("/src/", "/" + SRC_GEN_FOLDER + "/")); //TODO needs to be more precise
+		// TODO needs to be more precise - use JDTUtilites
+		compiledURI = URI.createURI(compiledURI.toString().replaceFirst("/src/", "/" + SRC_GEN_FOLDER + "/"));
 		Resource compiledResource = resource.getResourceSet().createResource(compiledURI);
 		compiledResource.getContents().addAll(resource.getContents());
 		try {
