@@ -15,7 +15,6 @@
  ******************************************************************************/
 package de.devboost.commenttemplate;
 
-import de.devboost.commenttemplate.compiler.CommentTemplateCompiler;
 
 /**
  * The {@link VariableAntiQuotation} annotation can be used to customize the
@@ -26,7 +25,7 @@ import de.devboost.commenttemplate.compiler.CommentTemplateCompiler;
  * formatting pattern that is passed as first argument to 
  * {@link String#format(String, Object...)}. The second argument is the variable
  * name. For example, adding @VariableAntiQuotation("#%s#") tells the 
- * {@link CommentTemplateCompiler} to detect variable accesses that are enclosed
+ * CommentTemplateCompiler to detect variable accesses that are enclosed
  * by the hash character.
  */
 public @interface VariableAntiQuotation {
