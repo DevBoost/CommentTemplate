@@ -453,6 +453,14 @@ public class CommentTemplateCompiler {
 		// we use a modified version of the printer to retrieve all comments in
 		// the exact order they appear in the source code. while this may sound
 		// crazy, the printer is only entity that is smart enough for this job.
+		element = EcoreUtil.copy(element);
+		if (element instanceof ClassMethod) {
+			ClassMethod method = (ClassMethod) element;
+			for (AnnotationInstanceOrModifier annotationInstanceOrModifier : method.getAnnotationsAndModifiers()) {
+				//remove Javadoc and comments which are not part of the method body
+				annotationInstanceOrModifier.getLayoutInformations().clear();
+			}
+		}
 		new JavaLayoutUtil().transferAllLayoutInformationFromModel(element);
 		JavaPrinter2 printer = new JavaPrinter2(new ByteArrayOutputStream(), (IJavaTextResource) element.eResource()) {
 			
