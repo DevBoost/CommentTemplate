@@ -15,6 +15,9 @@
  ******************************************************************************/
 package de.devboost.commenttemplate;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
+
 /**
  * This annotation must be added to all methods that shall be compiled by the
  * CommentTemplate compiler which concatenates all comments in the method using
@@ -22,5 +25,6 @@ package de.devboost.commenttemplate;
  * 
  * Methods that use this annotation must have return type String.
  */
+@Target(ElementType.METHOD)
 public @interface CommentTemplate {
 }

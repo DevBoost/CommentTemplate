@@ -15,6 +15,9 @@
  ******************************************************************************/
 package de.devboost.commenttemplate;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
+
 
 /**
  * The {@link VariableAntiQuotation} annotation can be used to customize the
@@ -28,6 +31,7 @@ package de.devboost.commenttemplate;
  * CommentTemplateCompiler to detect variable accesses that are enclosed
  * by the hash character.
  */
+@Target({ElementType.METHOD, ElementType.TYPE})
 public @interface VariableAntiQuotation {
 
 	String value();

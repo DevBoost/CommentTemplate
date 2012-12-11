@@ -15,6 +15,9 @@
  ******************************************************************************/
 package de.devboost.commenttemplate;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
+
 
 /**
  * The {@link LineBreak} annotation can be used to configure which kind of line
@@ -23,6 +26,7 @@ package de.devboost.commenttemplate;
  * adding {@link LineBreak} annotations to methods with the 
  * {@link CommentTemplate} annotation.
  */
+@Target({ElementType.METHOD, ElementType.TYPE})
 public @interface LineBreak {
 
 	String value();
