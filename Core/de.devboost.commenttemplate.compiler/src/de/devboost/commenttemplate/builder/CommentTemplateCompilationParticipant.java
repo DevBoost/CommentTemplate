@@ -40,6 +40,7 @@ import org.eclipse.jdt.core.compiler.CompilationParticipant;
 import org.emftext.language.java.resource.java.IJavaOptions;
 import org.emftext.language.java.resource.java.mopp.JavaMarkerHelper;
 
+import de.devboost.commenttemplate.CommentTemplatePlugin;
 import de.devboost.commenttemplate.compiler.CommentTemplateCompiler;
 
 public class CommentTemplateCompilationParticipant extends CompilationParticipant {
@@ -58,8 +59,7 @@ public class CommentTemplateCompilationParticipant extends CompilationParticipan
 		try {
 			buildUnsafe(files);
 		} catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
+			CommentTemplatePlugin.logError("Error while build CommentTemplate class.", e);
 		}
 	}
 
