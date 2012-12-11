@@ -19,12 +19,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.TreeIterator;
@@ -474,7 +477,24 @@ public class CommentTemplateCompiler {
 			}
 		};
 		try {
+			Map<AnnotationInstanceOrModifier, List<Adapter>> layoutAdapterCache = 
+					new LinkedHashMap<AnnotationInstanceOrModifier, List<Adapter>>();
+			if (element instanceof ClassMethod) {
+				ClassMethod method = (ClassMethod) element;
+				for (AnnotationInstanceOrModifier annotationInstanceOrModifier : method.getAnnotationsAndModifiers()) {
+					//remove Javadoc and comments which are not part of the method body
+					layoutAdapterCache.put(annotationInstanceOrModifier, new ArrayList<Adapter>(
+							annotationInstanceOrModifier.eAdapters()));
+					annotationInstanceOrModifier.eAdapters().clear();
+				}
+			}
 			printer.print(element);
+			for (Map.Entry<AnnotationInstanceOrModifier, List<Adapter>> entry : layoutAdapterCache.entrySet()) {
+				//TODO add LB and comments attached to @CommentTemplate annotations somewhere else, because
+				//     that information is lost when the annotations are removed in the end of compile()
+				entry.getKey().eAdapters().clear();
+				entry.getKey().eAdapters().addAll(entry.getValue());
+			}
 		} catch (IOException ioe) {
 			CommentTemplatePlugin.logError("IOException while printing template fragment.", ioe);
 		}

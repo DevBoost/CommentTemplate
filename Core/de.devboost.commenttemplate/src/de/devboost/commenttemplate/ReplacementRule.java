@@ -15,6 +15,9 @@
  ******************************************************************************/
 package de.devboost.commenttemplate;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
+
 /**
  * This annotation can be added to methods that are annotated with the 
  * CommentTemplate annotation. It can also be added to classes which means that
@@ -25,6 +28,7 @@ package de.devboost.commenttemplate;
  * long text fragment that appear frequently or to allow the embedding of Java
  * comments in templates.
  */
+@Target({ElementType.METHOD, ElementType.TYPE})
 public @interface ReplacementRule {
 
 	public String pattern();

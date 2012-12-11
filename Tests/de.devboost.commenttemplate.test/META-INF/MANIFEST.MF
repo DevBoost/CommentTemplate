@@ -6,6 +6,7 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: org.junit4,
  de.devboost.commenttemplate,
+ de.devboost.commenttemplate.compiler,
  de.devboost.onthefly_javac,
  org.emftext.language.java,
  org.emftext.language.java.resource,

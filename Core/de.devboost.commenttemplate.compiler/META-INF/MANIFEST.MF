@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: CommentTemplate Compiler
+Bundle-SymbolicName: de.devboost.commenttemplate.compiler;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.emftext.language.java,
+ org.emftext.language.java.resource,
+ org.emftext.language.java.resource.java,
+ org.eclipse.jdt.core,
+ de.devboost.commenttemplate
+Export-Package: de.devboost.commenttemplate.app,
+ de.devboost.commenttemplate.builder,
+ de.devboost.commenttemplate.compiler
+Bundle-Activator: de.devboost.commenttemplate.CommentTemplatePlugin

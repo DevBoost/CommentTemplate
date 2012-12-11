@@ -15,15 +15,18 @@
  ******************************************************************************/
 package de.devboost.commenttemplate;
 
-import de.devboost.commenttemplate.compiler.CommentTemplateCompiler;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
+
 
 /**
  * The {@link LineBreak} annotation can be used to configure which kind of line
- * delimiter is used by the {@link CommentTemplateCompiler}. By default, a 
+ * delimiter is used by the CommentTemplateCompiler. By default, a 
  * single new line character is used, but this behavior can be customized by
  * adding {@link LineBreak} annotations to methods with the 
  * {@link CommentTemplate} annotation.
  */
+@Target({ElementType.METHOD, ElementType.TYPE})
 public @interface LineBreak {
 
 	String value();
