@@ -156,7 +156,7 @@ public class CommentTemplateCompilationParticipant extends CompilationParticipan
 	}
 
 	@Override
-		public void buildFinished(IJavaProject project) {
+	public void buildFinished(IJavaProject project) {
 	//		TODO fix code to remove markers AND annotations for unused variables which are used in a template fragment
 	//		try {
 	//			IMarker[] findMarkers = project.getProject().findMarkers("org.eclipse.jdt.core.problem", true, IResource.DEPTH_INFINITE);
@@ -179,6 +179,5 @@ public class CommentTemplateCompilationParticipant extends CompilationParticipan
 	//		} catch (CoreException e) {
 	//			e.printStackTrace();
 	//		}
-		}
-		
+	}
 }
