@@ -54,11 +54,11 @@ public class CommentTemplateCompilationParticipant extends CompilationParticipan
 
 	@Override
 	public void buildStarting(BuildContext[] files, boolean isBatch) {
-		// we must catch exception to avoid that the build process is blocked
+		// we must catch exceptions to avoid that the build process is blocked
 		// if something goes wrong with CommentTemplate
 		try {
 			buildUnsafe(files);
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			CommentTemplatePlugin.logError("Error while build CommentTemplate class.", e);
 		}
 	}
