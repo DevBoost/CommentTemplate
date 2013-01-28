@@ -83,14 +83,16 @@ public class TemplateCompilerTest extends TestCase {
 	public void testTemplateCompilation() throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException, InstantiationException, FileNotFoundException, IOException {
 		
 		String templatePackage = Template1Source.class.getPackage().getName();
-		String pathToTemplates = "src" + File.separatorChar + templatePackage.replace('.', File.separatorChar);
+		String srcPath = "src";
+		File srcFolder = new File(srcPath);
+		String pathToTemplates = srcPath + File.separatorChar + templatePackage.replace('.', File.separatorChar);
 		File templateDir = new File(pathToTemplates);
 		File[] templateFiles = templateDir.listFiles(new FileFilter() {
 			
 			@Override
 			public boolean accept(File pathname) {
 				String name = pathname.getName();
-				return name.endsWith(".java");
+				return name.endsWith("Source.java");
 			}
 		});
 		
@@ -103,6 +105,8 @@ public class TemplateCompilerTest extends TestCase {
 			rs.getResourceFactoryRegistry().getExtensionToFactoryMap().put("java", new JavaSourceOrClassFileResourceFactoryImpl());
 			
 			JavaClasspath.get(rs).registerClassifier(CommentTemplate.class);
+			URI sourceFolderURI = URI.createFileURI(srcFolder.getAbsolutePath());
+			JavaClasspath.get(rs).registerSourceOrClassFileFolder(sourceFolderURI);
 			
 			Resource resource = rs.getResource(URI.createFileURI(templateFile.getAbsolutePath()), true);
 			assertFalse("Original resource must not be empty.", resource.getContents().isEmpty());
