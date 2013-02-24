@@ -59,7 +59,7 @@ public class CommentTemplateCompilationParticipant extends CompilationParticipan
 		try {
 			buildUnsafe(files);
 		} catch (Throwable e) {
-			CommentTemplatePlugin.logError("Error while build CommentTemplate class.", e);
+			CommentTemplatePlugin.logError("Error while building CommentTemplate class.", e);
 		}
 	}
 
