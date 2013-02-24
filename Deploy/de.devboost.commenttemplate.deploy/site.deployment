@@ -3,5 +3,4 @@ site/uploadPath = www.devboost.de:/home/jenkins/commenttemplate/update_trunk
 site/usernameProperty = DEVBOOST_UPLOAD_USER
 site/passwordProperty = DEVBOOST_UPLOAD_PASS
 
-site/version = 0.9.1
 site/snapshot = false
