@@ -18,6 +18,7 @@ package de.devboost.commenttemplate.builder;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -36,14 +37,15 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.BuildContext;
-import org.eclipse.jdt.core.compiler.CompilationParticipant;
 import org.emftext.language.java.resource.java.IJavaOptions;
 import org.emftext.language.java.resource.java.mopp.JavaMarkerHelper;
 
 import de.devboost.commenttemplate.CommentTemplatePlugin;
 import de.devboost.commenttemplate.compiler.CommentTemplateCompiler;
+import de.devboost.eclipse.jdtutilities.AbstractCompilationParticipant;
+import de.devboost.eclipse.jdtutilities.CompilationEvent;
 
-public class CommentTemplateCompilationParticipant extends CompilationParticipant {
+public class CommentTemplateCompilationParticipant extends AbstractCompilationParticipant {
 
 	private CommentTemplateBuilder builder = new CommentTemplateBuilder();
 	
@@ -53,7 +55,22 @@ public class CommentTemplateCompilationParticipant extends CompilationParticipan
 	}
 
 	@Override
-	public void buildStarting(BuildContext[] files, boolean isBatch) {
+	public void buildStarting(CompilationEvent event) {
+		// do nothing
+	}
+
+	@Override
+	public void buildFinished(Collection<CompilationEvent> events) {
+		BuildContext[] files = new BuildContext[events.size()];
+		int i = 0;
+		for (CompilationEvent event : events) {
+			BuildContext context = event.getContext();
+			files[i++] = context;
+		}
+		buildStartingInternal(files);
+	}
+	
+	private void buildStartingInternal(BuildContext[] files) {
 		// we must catch exceptions to avoid that the build process is blocked
 		// if something goes wrong with CommentTemplate
 		try {
@@ -70,7 +87,8 @@ public class CommentTemplateCompilationParticipant extends CompilationParticipan
 				IJavaOptions.DISABLE_CREATING_MARKERS_FOR_PROBLEMS, Boolean.TRUE);
 		for (BuildContext context : files) {
 			IFile srcFile = context.getFile();
-			URI uri = URI.createPlatformResourceURI(srcFile.getFullPath().toString(), true);
+			IPath srcFilePath = srcFile.getFullPath();
+			URI uri = URI.createPlatformResourceURI(srcFilePath.toString(), true);
 			if (builder.isBuildingNeeded(uri)) {
 				Set<String> brokenVariableReferences = new LinkedHashSet<String>();
 				URI compiledURI = builder.build(resourceSet.getResource(uri, true), brokenVariableReferences);
@@ -155,8 +173,8 @@ public class CommentTemplateCompilationParticipant extends CompilationParticipan
 		}
 	}
 
-	@Override
-	public void buildFinished(IJavaProject project) {
+	//@Override
+	//public void buildFinished(IJavaProject project) {
 	//		TODO fix code to remove markers AND annotations for unused variables which are used in a template fragment
 	//		try {
 	//			IMarker[] findMarkers = project.getProject().findMarkers("org.eclipse.jdt.core.problem", true, IResource.DEPTH_INFINITE);
@@ -179,5 +197,5 @@ public class CommentTemplateCompilationParticipant extends CompilationParticipan
 	//		} catch (CoreException e) {
 	//			e.printStackTrace();
 	//		}
-	}
+	//}
 }
