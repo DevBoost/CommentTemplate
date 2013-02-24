@@ -30,3 +30,7 @@ git:https://github.com/DevBoost/DevBoost-Tools.git!OnTheFlyJavac/
 
 // Feedback
 git:https://github.com/DevBoost/Feedback.git!Core/
+
+// JDTUtilities
+git:https://github.com/DevBoost/JDTUtilities.git!plugins/
+git:https://github.com/DevBoost/JDTUtilities.git!updatesite/
