@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Genext for CommentTemplate
+Bundle-SymbolicName: org.buildboost.genext.commenttemplate
+Bundle-Version: 1.0.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Require-Bundle: de.devboost.buildboost
+Export-Package: org.dropsbox.autobuild.genext.commenttemplate
