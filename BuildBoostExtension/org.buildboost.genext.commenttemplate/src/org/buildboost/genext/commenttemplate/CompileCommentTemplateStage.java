@@ -45,21 +45,19 @@ public class CompileCommentTemplateStage extends AbstractBuildStage {
 		COMMENTTEMPLATE_PLUGIN_IDENTIFIERS.add("org.emftext.language.java.resource.bcel");
 	}
 
-	private String buildDirPath;
-	private String eclipseHome;
+	private String artifactsFolder;
 	
-	public void setBuildDirPath(String buildDirPath) {
-		this.buildDirPath = buildDirPath;
-	}
-
-	public void setEclipseHome(String eclipseHome) {
-		this.eclipseHome = eclipseHome;
+	public void setArtifactsFolder(String artifactsFolder) {
+		this.artifactsFolder = artifactsFolder;
 	}
 
 	public AntScript getScript() throws BuildException {
 		BuildContext context = createContext(false);
-		context.addBuildParticipant(new EclipseTargetPlatformAnalyzer(new File(eclipseHome)));
-		context.addBuildParticipant(new PluginFinder(new File(buildDirPath)));
+		
+		File artifactsFolderFile = new File(artifactsFolder);
+		
+		context.addBuildParticipant(new EclipseTargetPlatformAnalyzer(artifactsFolderFile));
+		context.addBuildParticipant(new PluginFinder(artifactsFolderFile));
 		
 		context.addBuildParticipant(new CompileProjectStepProvider());
 		
