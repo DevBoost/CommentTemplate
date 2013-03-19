@@ -23,9 +23,10 @@ import de.devboost.buildboost.BuildException;
 import de.devboost.buildboost.ant.AntScript;
 import de.devboost.buildboost.discovery.EclipseTargetPlatformAnalyzer;
 import de.devboost.buildboost.discovery.PluginFinder;
+import de.devboost.buildboost.model.IUniversalBuildStage;
 import de.devboost.buildboost.stages.AbstractBuildStage;
 
-public class CompileTemplatesStage extends AbstractBuildStage {
+public class CompileTemplatesStage extends AbstractBuildStage implements IUniversalBuildStage {
 
 	private String buildDirPath;
 	private String eclipseHome;
@@ -55,5 +56,10 @@ public class CompileTemplatesStage extends AbstractBuildStage {
 		script.addTargets(builder.generateAntTargets());
 		
 		return script;
+	}
+
+	@Override
+	public int getPriority() {
+		return 2000;
 	}
 }
