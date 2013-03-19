@@ -13,7 +13,7 @@
  *   DevBoost GmbH - Berlin, Germany
  *      - initial API and implementation
  ******************************************************************************/
-package org.dropsbox.autobuild.genext.commenttemplate;
+package org.buildboost.genext.commenttemplate;
 
 import java.io.File;
 import java.util.Collection;
