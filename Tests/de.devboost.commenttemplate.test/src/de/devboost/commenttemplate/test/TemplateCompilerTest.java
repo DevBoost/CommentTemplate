@@ -105,7 +105,9 @@ public class TemplateCompilerTest extends TestCase {
 			rs.getResourceFactoryRegistry().getExtensionToFactoryMap().put("java", new JavaSourceOrClassFileResourceFactoryImpl());
 			
 			JavaClasspath.get(rs).registerClassifier(CommentTemplate.class);
-			URI sourceFolderURI = URI.createFileURI(srcFolder.getAbsolutePath());
+			String absoluteSrcFolderPath = srcFolder.getAbsolutePath();
+			System.out.println("testTemplateCompilation() absoluteSrcFolderPath = " + absoluteSrcFolderPath);
+			URI sourceFolderURI = URI.createFileURI(absoluteSrcFolderPath);
 			JavaClasspath.get(rs).registerSourceOrClassFileFolder(sourceFolderURI);
 			
 			Resource resource = rs.getResource(URI.createFileURI(templateFile.getAbsolutePath()), true);
