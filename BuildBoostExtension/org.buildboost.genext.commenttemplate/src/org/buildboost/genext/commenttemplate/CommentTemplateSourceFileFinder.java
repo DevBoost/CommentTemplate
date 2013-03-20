@@ -26,20 +26,25 @@ import de.devboost.buildboost.model.IArtifact;
 import de.devboost.buildboost.model.IBuildContext;
 import de.devboost.buildboost.util.ArtifactUtil;
 
-public class CommentTemplateSourceFinder extends AbstractFileFinder<CommentTemplateSource> {
+/**
+ * The {@link CommentTemplateSourceFileFinder} detects all Java classes that are
+ * CommentTemplate template classes. To do so, it currently check whether the
+ * file name ends with <code>Source.java</code> which is not exact.
+ */
+public class CommentTemplateSourceFileFinder extends AbstractFileFinder<CommentTemplateSourceFile> {
 
-	public CommentTemplateSourceFinder(File directory) {
+	public CommentTemplateSourceFileFinder(File directory) {
 		super(directory);
 	}
 
 	public Collection<IArtifact> discoverArtifacts(IBuildContext context) throws BuildException {
-		Collection<CommentTemplateSource> genModels = new ArrayList<CommentTemplateSource>();
+		Collection<CommentTemplateSourceFile> genModels = new ArrayList<CommentTemplateSourceFile>();
 		traverse(context, genModels);
 		return new ArtifactUtil().getSetOfArtifacts(genModels);
 	}
 
-	protected CommentTemplateSource createArtifactFromFile(File file) {
-		return new CommentTemplateSource(file);
+	protected CommentTemplateSourceFile createArtifactFromFile(File file) {
+		return new CommentTemplateSourceFile(file);
 	}
 
 	protected FileFilter getFileFilter() {

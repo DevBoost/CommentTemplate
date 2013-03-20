@@ -13,7 +13,7 @@
  *   DevBoost GmbH - Berlin, Germany
  *      - initial API and implementation
  ******************************************************************************/
-package org.buildboost.genext.commenttemplate;
+package org.buildboost.genext.commenttemplate.stages;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -26,11 +26,19 @@ import de.devboost.buildboost.ant.AntScript;
 import de.devboost.buildboost.discovery.EclipseTargetPlatformAnalyzer;
 import de.devboost.buildboost.discovery.PluginFinder;
 import de.devboost.buildboost.filters.IdentifierFilter;
+import de.devboost.buildboost.model.IUniversalBuildStage;
 import de.devboost.buildboost.stages.AbstractBuildStage;
 import de.devboost.buildboost.steps.compile.CompileProjectStepProvider;
 
-public class CompileCommentTemplateStage extends AbstractBuildStage {
+/**
+ * This build stage compiles the CommentTemplate tooling which is required to 
+ * compile actual template classes. The latter action is performed by the 
+ * {@link CompileTemplatesStage}.
+ */
+public class CompileCommentTemplateStage extends AbstractBuildStage implements IUniversalBuildStage {
 
+	public static final int PRIORITY = 2000;
+	
 	private static final Set<String> COMMENTTEMPLATE_PLUGIN_IDENTIFIERS = new LinkedHashSet<String>();
 	
 	static {
@@ -69,5 +77,10 @@ public class CompileCommentTemplateStage extends AbstractBuildStage {
 		script.setName("Compile CommentTemplate plug-ins");
 		script.addTargets(builder.generateAntTargets());
 		return script;
+	}
+
+	@Override
+	public int getPriority() {
+		return PRIORITY;
 	}
 }

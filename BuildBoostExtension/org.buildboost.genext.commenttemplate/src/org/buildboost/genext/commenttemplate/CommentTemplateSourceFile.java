@@ -22,13 +22,17 @@ import de.devboost.buildboost.artifacts.Plugin;
 import de.devboost.buildboost.model.UnresolvedDependency;
 import de.devboost.buildboost.util.EclipsePluginHelper;
 
-public class CommentTemplateSource extends AbstractArtifact {
+/**
+ * A {@link CommentTemplateSourceFile} is a Java source file the contains
+ * CommentTemplate annotations.
+ */
+public class CommentTemplateSourceFile extends AbstractArtifact {
 
 	private static final long serialVersionUID = -1197582465990182947L;
 	private File file;
 	private File projectDir;
 
-	public CommentTemplateSource(File file) {
+	public CommentTemplateSourceFile(File file) {
 		this.file = file;
 		this.projectDir = new EclipsePluginHelper().findProjectDir(file);
 		UnresolvedDependency autobuildDependency = new UnresolvedDependency(Plugin.class, "de.devboost.commenttemplate", null, true, null, true, false, false);

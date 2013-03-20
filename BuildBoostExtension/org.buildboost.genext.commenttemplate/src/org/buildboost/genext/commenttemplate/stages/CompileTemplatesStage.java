@@ -13,9 +13,12 @@
  *   DevBoost GmbH - Berlin, Germany
  *      - initial API and implementation
  ******************************************************************************/
-package org.buildboost.genext.commenttemplate;
+package org.buildboost.genext.commenttemplate.stages;
 
 import java.io.File;
+
+import org.buildboost.genext.commenttemplate.CommentTemplateSourceFileFinder;
+import org.buildboost.genext.commenttemplate.steps.CompileTemplatesStepProvider;
 
 import de.devboost.buildboost.AutoBuilder;
 import de.devboost.buildboost.BuildContext;
@@ -26,33 +29,31 @@ import de.devboost.buildboost.discovery.PluginFinder;
 import de.devboost.buildboost.model.IUniversalBuildStage;
 import de.devboost.buildboost.stages.AbstractBuildStage;
 
+/**
+ * This build stage compiles CommentTemplate template classes to plain Java
+ * source files.
+ */
 public class CompileTemplatesStage extends AbstractBuildStage implements IUniversalBuildStage {
 
-	private String buildDirPath;
-	private String eclipseHome;
+	private String artifactsFolder;
 	
-	public void setBuildDirPath(String buildDirPath) {
-		this.buildDirPath = buildDirPath;
-	}
-
-	public void setEclipseHome(String eclipseHome) {
-		this.eclipseHome = eclipseHome;
+	public void setArtifactsFolder(String artifactsFolder) {
+		this.artifactsFolder = artifactsFolder;
 	}
 
 	public AntScript getScript() throws BuildException {
-		File buildDir = new File(buildDirPath);
-		File targetPlatform = new File(eclipseHome);
+		File artifactsFolderDir = new File(artifactsFolder);
 
 		BuildContext context = createContext(true);
-		context.addBuildParticipant(new EclipseTargetPlatformAnalyzer(targetPlatform));
-		context.addBuildParticipant(new PluginFinder(buildDir));
-		context.addBuildParticipant(new CommentTemplateSourceFinder(buildDir));		
+		context.addBuildParticipant(new EclipseTargetPlatformAnalyzer(artifactsFolderDir));
+		context.addBuildParticipant(new PluginFinder(artifactsFolderDir));
+		context.addBuildParticipant(new CommentTemplateSourceFileFinder(artifactsFolderDir));		
 		context.addBuildParticipant(new CompileTemplatesStepProvider());
 		
 		AutoBuilder builder = new AutoBuilder(context);
 		
 		AntScript script = new AntScript();
-		script.setName("Execute EMFCustomize's generated factory refactoring");
+		script.setName("Compile CommentTemplate template classes");
 		script.addTargets(builder.generateAntTargets());
 		
 		return script;
@@ -60,6 +61,7 @@ public class CompileTemplatesStage extends AbstractBuildStage implements IUniver
 
 	@Override
 	public int getPriority() {
-		return 2000;
+		// Must run after compiling CommentTemplate itself
+		return CompileCommentTemplateStage.PRIORITY + 1;
 	}
 }

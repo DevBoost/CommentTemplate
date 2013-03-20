@@ -13,11 +13,13 @@
  *   DevBoost GmbH - Berlin, Germany
  *      - initial API and implementation
  ******************************************************************************/
-package org.buildboost.genext.commenttemplate;
+package org.buildboost.genext.commenttemplate.steps;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+
+import org.buildboost.genext.commenttemplate.CommentTemplateSourceFile;
 
 import de.devboost.buildboost.BuildException;
 import de.devboost.buildboost.IConstants;
@@ -34,9 +36,9 @@ public class CompileTemplatesStep extends AbstractAntTargetGenerator {
 
 	public final static String MAIN_TASK = "comment-template-compile";
 
-	private CommentTemplateSource source;
+	private CommentTemplateSourceFile source;
 
-	public CompileTemplatesStep(CommentTemplateSource source) {
+	public CompileTemplatesStep(CommentTemplateSourceFile source) {
 		this.source = source;
 	}
 
