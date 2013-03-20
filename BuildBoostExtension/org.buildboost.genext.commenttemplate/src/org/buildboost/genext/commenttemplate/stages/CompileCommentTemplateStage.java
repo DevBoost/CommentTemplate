@@ -46,7 +46,10 @@ public class CompileCommentTemplateStage extends AbstractBuildStage implements I
 		COMMENTTEMPLATE_PLUGIN_IDENTIFIERS.add("de.devboost.commenttemplate.compiler");
 		COMMENTTEMPLATE_PLUGIN_IDENTIFIERS.add("org.buildboost.buildext.commenttemplate");
 		
-		//JaMoPP is required
+		// JDTUtilities are required
+		COMMENTTEMPLATE_PLUGIN_IDENTIFIERS.add("de.devboost.eclipse.jdtutilities");
+		
+		// JaMoPP is required
 		COMMENTTEMPLATE_PLUGIN_IDENTIFIERS.add("org.emftext.commons.layout");
 		COMMENTTEMPLATE_PLUGIN_IDENTIFIERS.add("org.emftext.commons.antlr3_4_0");
 		COMMENTTEMPLATE_PLUGIN_IDENTIFIERS.add("org.emftext.language.java");
