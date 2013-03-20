@@ -35,7 +35,10 @@ public class CommentTemplateSourceFile extends AbstractArtifact {
 	public CommentTemplateSourceFile(File file) {
 		this.file = file;
 		this.projectDir = new EclipsePluginHelper().findProjectDir(file);
-		UnresolvedDependency autobuildDependency = new UnresolvedDependency(Plugin.class, "de.devboost.commenttemplate", null, true, null, true, false, false);
+		
+		// add dependency to CommentTemplate build extension to make sure the
+		// extension is in the class path of the generated build script
+		UnresolvedDependency autobuildDependency = new UnresolvedDependency(Plugin.class, "org.buildboost.buildext.commenttemplate", null, true, null, true, false, false);
 		getUnresolvedDependencies().add(autobuildDependency);
 	}
 
