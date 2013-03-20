@@ -29,10 +29,13 @@ import de.devboost.buildboost.steps.ClasspathHelper;
 import de.devboost.buildboost.util.XMLContent;
 
 /**
- * The {@link CompileTemplatesStep} generates a script that calls the EMF
- * code generators to obtain code from Ecore models. 
+ * The {@link CompileTemplatesStep} generates a script that calls the 
+ * CommentTemplate compiler to translate CommentTemplate template class to 
+ * plain Java. 
  */
 public class CompileTemplatesStep extends AbstractAntTargetGenerator {
+	
+	private final static String APPLICATION = "org.buildboost.buildext.commenttemplate.CommentTemplateApplication";
 
 	public final static String MAIN_TASK = "comment-template-compile";
 
@@ -55,7 +58,7 @@ public class CompileTemplatesStep extends AbstractAntTargetGenerator {
 		sb.append(IConstants.NL);
 		
 		sb.append("<echo message=\"Compiling CommentTemplate " + sourceFilePath + "\" />");
-		sb.append("<java classname=\"de.devboost.commenttemplate.app.CommentTemplateApplication\" failonerror=\"true\">");
+		sb.append("<java classname=\"" + APPLICATION + "\" failonerror=\"true\">");
 		sb.append("<arg value=\"" + sourceFilePath + "\"/>");
 		sb.append("<arg value=\"" + runtimeClasspath + "\"/>");
 		sb.append("<classpath>");
