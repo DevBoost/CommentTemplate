@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.tools.JavaFileObject;
 
@@ -34,13 +35,16 @@ import junit.framework.TestCase;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.Resource.Diagnostic;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.emftext.language.java.JavaClasspath;
 import org.emftext.language.java.containers.CompilationUnit;
 import org.emftext.language.java.resource.JavaSourceOrClassFileResourceFactoryImpl;
+import org.emftext.language.java.resource.java.util.JavaResourceUtil;
 
 import de.devboost.commenttemplate.CommentTemplate;
 import de.devboost.commenttemplate.compiler.CommentTemplateCompiler;
@@ -118,6 +122,13 @@ public class TemplateCompilerTest extends TestCase {
 			}
 			assertTrue("Resource must not contain errors.", errors.isEmpty());
 
+			EcoreUtil.resolveAll(resource);
+			Set<EObject> unresolvedProxies = JavaResourceUtil.findUnresolvedProxies(resource);
+			for (EObject proxy : unresolvedProxies) {
+				System.out.println("Found unresolved proxy: "+ proxy);
+			}
+			assertTrue("There must not be unresolved proxy objects.", unresolvedProxies.isEmpty());
+			
 			boolean success = new CommentTemplateCompiler().compile(resource, new LinkedHashSet<String>());
 			assertTrue("Template must be compilable", success);
 			assertFalse("Original resource must not be empty after compilation.", resource.getContents().isEmpty());
