@@ -199,7 +199,7 @@ public class CommentTemplateCompiler {
 		if (!(resource.getContents().get(0) instanceof CompilationUnit)) {
 			return false;
 		}
-		// TODO Check whether the resource contains unresolve proxy objects.
+		// TODO Check whether the resource contains unresolved proxy objects.
 		// If this is the case, the JaMoPP JDT integration plug-in might be
 		// missing and the compiled template classes will not be correct.
 		
