@@ -19,11 +19,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import de.devboost.commenttemplate.CommentTemplate;
-import de.devboost.commenttemplate.compiler.CommentTemplateCompiler;
 
 public class Template7Source {
 
-	private String LB = CommentTemplateCompiler.DEFAULT_LINE_BREAK;
+	private String LB = LineBreak.LB;
 
 	@SuppressWarnings("unused")
 	@CommentTemplate

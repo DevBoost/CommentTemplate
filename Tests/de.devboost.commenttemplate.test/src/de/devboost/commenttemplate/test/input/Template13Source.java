@@ -16,7 +16,6 @@
 package de.devboost.commenttemplate.test.input;
 
 import de.devboost.commenttemplate.CommentTemplate;
-import de.devboost.commenttemplate.compiler.CommentTemplateCompiler;
 
 /**
  * This is a test template that verifies whether multiple comments that appear
@@ -24,7 +23,7 @@ import de.devboost.commenttemplate.compiler.CommentTemplateCompiler;
  */
 public class Template13Source {
 
-	private String LB = CommentTemplateCompiler.DEFAULT_LINE_BREAK;
+	private String LB = LineBreak.LB;
 
 	@CommentTemplate
 	public String generate() {
