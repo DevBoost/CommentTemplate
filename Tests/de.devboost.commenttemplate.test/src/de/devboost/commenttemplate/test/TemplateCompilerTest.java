@@ -28,7 +28,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -95,7 +97,16 @@ public class TemplateCompilerTest {
 		});
 		
 		assertTrue("Found too few test templates", templateFiles.length >= 11);
+		
+		// sort input files by name to avoid indeterminism during test
+		Arrays.sort(templateFiles, new Comparator<File>() {
 
+			@Override
+			public int compare(File f1, File f2) {
+				return f1.getName().compareTo(f2.getName());
+			}
+		});
+		
 		return templateFiles;
 	}
 
