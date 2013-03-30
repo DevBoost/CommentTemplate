@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -31,9 +32,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import javax.tools.JavaFileObject;
@@ -50,6 +53,7 @@ import org.emftext.language.java.JavaClasspath;
 import org.emftext.language.java.containers.CompilationUnit;
 import org.emftext.language.java.resource.JavaSourceOrClassFileResourceFactoryImpl;
 import org.emftext.language.java.resource.java.util.JavaResourceUtil;
+import org.emftext.language.java.resource.java.util.JavaStreamUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -83,10 +87,7 @@ public class TemplateCompilerTest {
 
 	private static File[] getTemplateFiles() {
 		
-		String templatePackage = getTemplatePackage();
-		String srcPath = getSrcFolder().getPath();
-		String pathToTemplates = srcPath + File.separatorChar + templatePackage.replace('.', File.separatorChar);
-		File templateDir = new File(pathToTemplates);
+		File templateDir = getTemplateDir();
 		File[] templateFiles = templateDir.listFiles(new FileFilter() {
 			
 			@Override
@@ -108,6 +109,19 @@ public class TemplateCompilerTest {
 		});
 		
 		return templateFiles;
+	}
+
+	private static File getTemplateDir() {
+		String pathToTemplates = getTemplatePath();
+		File templateDir = new File(pathToTemplates);
+		return templateDir;
+	}
+
+	private static String getTemplatePath() {
+		String templatePackage = getTemplatePackage();
+		String srcPath = getSrcFolder().getPath();
+		String pathToTemplates = srcPath + File.separatorChar + templatePackage.replace('.', File.separatorChar);
+		return pathToTemplates;
 	}
 
 	private static String getTemplatePackage() {
@@ -166,18 +180,26 @@ public class TemplateCompilerTest {
 		String compiledSourceCode = outputStream.toString();
 		System.out.println("compiledSourceCode (" + templateFileName + ") =>" + compiledSourceCode + "<=");
 		
-		String className = getTemplatePackage() + "." + compiledClassName;
+		String templatePackage = getTemplatePackage();
+		String className = templatePackage + "." + compiledClassName;
 		
 		OnTheFlyJavaCompiler compiler = new OnTheFlyJavaCompiler();
-		CompilationResult result = compiler.compile(className, compiledSourceCode);
-		boolean compiledSuccessfully = result.isSuccess();
-		if (!compiledSuccessfully) {
-			List<javax.tools.Diagnostic<? extends JavaFileObject>> compilationErrors = result.getDiagnosticsCollector().getDiagnostics();
-			for (javax.tools.Diagnostic<? extends JavaFileObject> compilationError : compilationErrors) {
-				System.out.println(compilationError.getMessage(Locale.ENGLISH));
-			}
+		Map<String, String> classNameToSourceCodeMap = new LinkedHashMap<String, String>();
+		
+		// compile the generated template class itself
+		classNameToSourceCodeMap.put(className, compiledSourceCode);
+
+		// compile required classes
+		File[] requiredFiles = getRequiredFiles(compiledClassName);
+		for (File requiredFile : requiredFiles) {
+			String fileName = requiredFile.getName();
+			String requiredClassName = templatePackage + "." + fileName.substring(0, fileName.length() - ".java".length());
+			String sourceCode = JavaStreamUtil.getContent(new FileInputStream(requiredFile));
+			System.out.println("requiredClassName: " + requiredClassName);
+			System.out.println("sourceCode: " + sourceCode);
+			classNameToSourceCodeMap.put(requiredClassName, sourceCode);
 		}
-		assertTrue("Compilation must be successful.", compiledSuccessfully);
+		CompilationResult result = compile(compiler, classNameToSourceCodeMap);
 		
 		Class<?> loadedClass = result.loadClass(className);
 		String generatedString = instantiateAndInvoke(loadedClass, "generate");
@@ -195,6 +217,34 @@ public class TemplateCompilerTest {
 		System.out.println("generatedString (" + templateFileName + ") =>" + generatedBytes + "<=");
 		System.out.println("expectedResult  (" + templateFileName + ") =>" + expectedBytes + "<=");
 		assertEquals("Unexpected generation result.", expectedResult, generatedString);
+	}
+
+	private File[] getRequiredFiles(final String compiledClassName) {
+		File templateDir = getTemplateDir();
+		File[] requiredFiles = templateDir.listFiles(new FileFilter() {
+			
+			@Override
+			public boolean accept(File pathname) {
+				String name = pathname.getName();
+				return name.startsWith(compiledClassName);
+			}
+		});
+		System.out.println("getRequiredFiles(" + compiledClassName + "): " + Arrays.asList(requiredFiles));
+		return requiredFiles;
+	}
+
+	private CompilationResult compile(OnTheFlyJavaCompiler compiler,
+			Map<String, String> classNameToSourceCodeMap) {
+		CompilationResult result = compiler.compile(classNameToSourceCodeMap);
+		boolean compiledSuccessfully = result.isSuccess();
+		if (!compiledSuccessfully) {
+			List<javax.tools.Diagnostic<? extends JavaFileObject>> compilationErrors = result.getDiagnosticsCollector().getDiagnostics();
+			for (javax.tools.Diagnostic<? extends JavaFileObject> compilationError : compilationErrors) {
+				System.out.println(compilationError.getMessage(Locale.ENGLISH));
+			}
+		}
+		assertTrue("Compilation must be successful.", compiledSuccessfully);
+		return result;
 	}
 
 	private String instantiateAndInvoke(Class<?> loadedClass, String methodName)
