@@ -4,15 +4,10 @@ git:https://github.com/DevBoost/BuildBoost.git!Extensions/UpdateSite/
 git:https://github.com/DevBoost/BuildBoost.git!Extensions/Maven/
 
 // EMFText
-git:https://github.com/DevBoost/EMFText.git!Core/Access/
-git:https://github.com/DevBoost/EMFText.git!Core/SDK/
-git:https://github.com/DevBoost/EMFText.git!Core/Commons/
-git:https://github.com/DevBoost/EMFText.git!Core/FeaturesCommons/
+dynamicfile:http://www.emftext.org/update_trunk/org.emftext.deploy-complete.zip
 
 // JaMoPP
-git:https://github.com/DevBoost/JaMoPP.git!Core/
-git:https://github.com/DevBoost/JaMoPP.git!Eclipse-Integration/
-git:https://github.com/DevBoost/JaMoPP.git!Features/
+dynamicfile:http://www.jamopp.org/update_trunk/org.jamopp.deploy-complete.zip
 
 // Eclipse Platform
 get:http://ftp-stud.fht-esslingen.de/pub/Mirrors/eclipse/eclipse/downloads/drops4/R-4.2-201206081400/eclipse-platform-4.2-win32-x86_64.zip
