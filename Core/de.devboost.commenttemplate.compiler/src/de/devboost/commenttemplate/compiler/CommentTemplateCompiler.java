@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006-2012
+ * Copyright (c) 2006-2013
  * Software Technology Group, Dresden University of Technology
  * DevBoost GmbH, Berlin, Amtsgericht Charlottenburg, HRB 140026
  * 
@@ -95,10 +95,10 @@ import de.devboost.commenttemplate.ReplacementRule;
 import de.devboost.commenttemplate.VariableAntiQuotation;
 
 /**
- * The {@link CommentTemplateCompiler} is used to transform Java classes that 
- * contain methods with the <code>CommentTemplate</code> annotations (i.e.,
- * code generator classes) to Java classes where the comments in the template
- * methods are replaced by StringBuilders.
+ * The {@link CommentTemplateCompiler} is used to transform Java classes that
+ * contain methods with <code>CommentTemplate</code> annotations (i.e., code
+ * generator classes) to Java classes where the comments in the template methods
+ * are replaced by StringBuilders.
  */
 public class CommentTemplateCompiler {
 	
@@ -114,7 +114,7 @@ public class CommentTemplateCompiler {
 	
 	/**
 	 * A {@link CommentUnit} is a list of comments together with the statement
-	 * before these comments appear in the source code. The statement is 
+	 * before which these comments appear in the source code. The statement is 
 	 * required because we need to insert a call to the append() method of the
 	 * StringBuilder in front of the statement.
 	 */
@@ -269,7 +269,8 @@ public class CommentTemplateCompiler {
 				renameClassifier(mainClassifier, compiledClassName);
 			}
 			
-			compiledResource.save(null);
+			Map<Object, Object> options = new SaveOptionProvider().getSaveOptions(compiledURI);
+			compiledResource.save(options);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -303,7 +304,8 @@ public class CommentTemplateCompiler {
 			AnnotationInstance variableAntiQuotation = null;
 			if (!variableAntiQuotations.isEmpty()) {
 				variableAntiQuotation = variableAntiQuotations.get(0);
-				// TODO add warning if there is multiple VariableAntiQuotation annotations
+				// TODO add warning if there is multiple VariableAntiQuotation
+				// annotations
 			}
 			compileCommentTemplateMethod((ClassMethod) method, replacementRules, variableAntiQuotation, brokenVariableReferences);
 
@@ -399,8 +401,13 @@ public class CommentTemplateCompiler {
 		returnStatement.setReturnValue(ir);
 	}
 
-	private void convertCommentsToStrings(ClassMethod method, LocalVariable stringBuilder, List<AnnotationInstance> replacementRules, AnnotationInstance variableAntiQuotation, Set<String> brokenVariableReferences) {
-		List<AddStatementOperation> operations = new ArrayList<CommentTemplateCompiler.AddStatementOperation>();
+	private void convertCommentsToStrings(ClassMethod method,
+			LocalVariable stringBuilder,
+			List<AnnotationInstance> replacementRules,
+			AnnotationInstance variableAntiQuotation,
+			Set<String> brokenVariableReferences) {
+
+		List<AddStatementOperation> operations = new ArrayList<AddStatementOperation>();
 	 	
 		List<Field> stringFields = getFields(method);
 		List<Variable> stringVariables = getLocalStringVariables(method);
@@ -432,8 +439,8 @@ public class CommentTemplateCompiler {
 					brokenVariableReferences);
 		}
 		
-		for (AddStatementOperation op : operations) {
-			op.execute();
+		for (AddStatementOperation operation : operations) {
+			operation.execute();
 		}
 	}
 
@@ -528,6 +535,7 @@ public class CommentTemplateCompiler {
 			findBrokenReferences(stringExpressions, variableAntiQuotation, brokenVariableReferences);
 			endedWithLineBreak = endsWithLineBreak(comment);
 			final EObject theElement = commentUnit.getStatement();
+			
 			operations.add(new AddStatementOperation() {
 				@Override
 				public void execute() {

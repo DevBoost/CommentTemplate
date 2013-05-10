@@ -11,7 +11,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.emftext.language.java.resource.java,
  org.eclipse.jdt.core,
  de.devboost.commenttemplate,
- de.devboost.eclipse.jdtutilities
+ de.devboost.eclipse.jdtutilities,
+ org.eclipse.ui.ide
 Export-Package: de.devboost.commenttemplate.app,
  de.devboost.commenttemplate.builder,
  de.devboost.commenttemplate.compiler
