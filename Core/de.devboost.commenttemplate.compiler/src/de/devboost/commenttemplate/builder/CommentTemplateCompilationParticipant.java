@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006-2012
+ * Copyright (c) 2006-2013
  * Software Technology Group, Dresden University of Technology
  * DevBoost GmbH, Berlin, Amtsgericht Charlottenburg, HRB 140026
  * 
@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
@@ -27,10 +28,12 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
@@ -56,18 +59,12 @@ public class CommentTemplateCompilationParticipant extends AbstractCompilationPa
 
 	@Override
 	public void buildStarting(CompilationEvent event) {
-		// do nothing
+		buildStartingInternal(new BuildContext[] {event.getContext()});
 	}
 
 	@Override
 	public void buildFinished(Collection<CompilationEvent> events) {
-		BuildContext[] files = new BuildContext[events.size()];
-		int i = 0;
-		for (CompilationEvent event : events) {
-			BuildContext context = event.getContext();
-			files[i++] = context;
-		}
-		buildStartingInternal(files);
+		// do nothing
 	}
 	
 	private void buildStartingInternal(BuildContext[] files) {
@@ -82,32 +79,40 @@ public class CommentTemplateCompilationParticipant extends AbstractCompilationPa
 
 	private void buildUnsafe(BuildContext[] files) {
 		ResourceSetImpl resourceSet = new ResourceSetImpl();
-		//markers are already created by the JDT
-		resourceSet.getLoadOptions().put(
-				IJavaOptions.DISABLE_CREATING_MARKERS_FOR_PROBLEMS, Boolean.TRUE);
+		// markers are already created by the JDT
+		Map<Object, Object> loadOptions = resourceSet.getLoadOptions();
+		loadOptions.put(IJavaOptions.DISABLE_CREATING_MARKERS_FOR_PROBLEMS,
+				Boolean.TRUE);
+
 		for (BuildContext context : files) {
 			IFile srcFile = context.getFile();
 			IPath srcFilePath = srcFile.getFullPath();
 			URI uri = URI.createPlatformResourceURI(srcFilePath.toString(), true);
-			if (builder.isBuildingNeeded(uri)) {
-				Set<String> brokenVariableReferences = new LinkedHashSet<String>();
-				URI compiledURI = builder.build(resourceSet.getResource(uri, true), brokenVariableReferences);
-				if (compiledURI != null) {
-					IWorkspace workspace = srcFile.getWorkspace();
-					IFile compiledSrc = 
-							workspace.getRoot().getFile(new Path(compiledURI.toPlatformString(true)));
-					try {
-						srcFile.deleteMarkers(JavaMarkerHelper.MARKER_TYPE, false, IResource.DEPTH_ONE);
-					} catch (CoreException e) {
-						e.printStackTrace();
-					}
-					if (!brokenVariableReferences.isEmpty()) {
-						createWarnings(brokenVariableReferences, srcFile);
-					}
-					context.recordAddedGeneratedFiles(new IFile[] {compiledSrc});
-					createSrcGenFolder(srcFile.getProject());
-				}
+			if (!builder.isBuildingNeeded(uri)) {
+				continue;
 			}
+			
+			Set<String> brokenVariableReferences = new LinkedHashSet<String>();
+			Resource resource = resourceSet.getResource(uri, true);
+			URI compiledURI = builder.build(resource, brokenVariableReferences);
+			if (compiledURI == null) {
+				continue;
+			}
+			
+			IWorkspace workspace = srcFile.getWorkspace();
+			IWorkspaceRoot root = workspace.getRoot();
+			Path compiledSrcPath = new Path(compiledURI.toPlatformString(true));
+			IFile compiledSrc = root.getFile(compiledSrcPath);
+			try {
+				srcFile.deleteMarkers(JavaMarkerHelper.MARKER_TYPE, false, IResource.DEPTH_ONE);
+			} catch (CoreException e) {
+				CommentTemplatePlugin.logError("Can't delete markers from " + srcFile, e);
+			}
+			if (!brokenVariableReferences.isEmpty()) {
+				createWarnings(brokenVariableReferences, srcFile);
+			}
+			context.recordAddedGeneratedFiles(new IFile[] {compiledSrc});
+			createSrcGenFolder(srcFile.getProject());
 		}
 	}
 
@@ -137,15 +142,16 @@ public class CommentTemplateCompilationParticipant extends AbstractCompilationPa
 			String line = null;
 
 			while ((line = bufferedReader.readLine()) != null) {
+				// TODO Using the Unix line break is probably not always correct
 				stringBuilder.append(line + "\n");
 			}
 
 			bufferedReader.close();
 			return stringBuilder.toString();
 		} catch (IOException e) {
-			e.printStackTrace();
+			CommentTemplatePlugin.logError("Can't read file " + file, e);
 		} catch (CoreException e) {
-			e.printStackTrace();
+			CommentTemplatePlugin.logError("Can't read file " + file, e);
 		}
 		return "";
 	}
@@ -169,7 +175,7 @@ public class CommentTemplateCompilationParticipant extends AbstractCompilationPa
 			newEntries[newEntries.length - 1] = entry;
 			javaProject.setRawClasspath(newEntries, null);
 		} catch (JavaModelException e) {
-			e.printStackTrace();
+			CommentTemplatePlugin.logError("Can't create CommentTemplate source folder in project " + project.getName(), e);
 		}
 	}
 
