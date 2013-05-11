@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.emf.common.util.URI;
 import org.emftext.language.java.resource.java.IJavaOptions;
 import org.emftext.language.java.resource.java.util.JavaEclipseProxy;
+import org.emftext.language.java.resource.java.util.JavaRuntimeUtil;
 import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
@@ -35,6 +36,10 @@ public class SaveOptionProvider {
 
 	public Map<Object, Object> getSaveOptions(URI compiledURI) {
 		Map<Object, Object> options = new LinkedHashMap<Object, Object>();
+		if (!new JavaRuntimeUtil().isEclipsePlatformRunning()) {
+			return options;
+		}
+		
 		IFile compiledFile = new JavaEclipseProxy().getFileForURI(compiledURI);
 		IProject project = compiledFile.getProject();
 		String lineBreak = getLineBreak(project);
