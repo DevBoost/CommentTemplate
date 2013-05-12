@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006-2012
+ * Copyright (c) 2006-2013
  * Software Technology Group, Dresden University of Technology
  * DevBoost GmbH, Berlin, Amtsgericht Charlottenburg, HRB 140026
  * 
@@ -15,35 +15,43 @@
  ******************************************************************************/
 package de.devboost.commenttemplate.builder;
 
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.Resource.Diagnostic;
 
+import de.devboost.commenttemplate.CommentTemplatePlugin;
 import de.devboost.commenttemplate.compiler.CommentTemplateCompiler;
 
 public class CommentTemplateBuilder {
 
 	public boolean isBuildingNeeded(URI uri) {
-		return uri.lastSegment().endsWith(CommentTemplateCompiler.SOURCE_SUFFIX + ".java");
+		String lastSegment = uri.lastSegment();
+		String suffix = CommentTemplateCompiler.SOURCE_SUFFIX + ".java";
+		return lastSegment.endsWith(suffix);
 	}
 
 	public URI build(Resource resource, Set<String> brokenVariableReferences) {
-		if (!resource.getErrors().isEmpty()) {
+		
+		List<Diagnostic> errors = resource.getErrors();
+		if (!errors.isEmpty()) {
 			return null;
 		}
+		
 		try {
+			CommentTemplateCompiler compiler = new CommentTemplateCompiler();
 			Resource compiledResource = 
-					new CommentTemplateCompiler().compileAndSave(resource, brokenVariableReferences);
+					compiler.compileAndSave(resource, brokenVariableReferences);
 			if (compiledResource == null) {
 				return null;
 			}
 			return compiledResource.getURI();
 		} catch (Exception e) {
-			e.printStackTrace();
-			// TODO: handle exception
+			String message = "Exception in " + getClass().getSimpleName();
+			CommentTemplatePlugin.logError(message, e);
 		}
 		return null;
 	}
-
 }

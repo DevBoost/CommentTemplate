@@ -107,6 +107,7 @@ public class CommentTemplateCompiler {
 	public static final String DEFAULT_LINE_BREAK = "\n";
 
 	private static final String LINE_BREAK_REGEX = "(\\\r\\\n|\\\r|\\\n)";
+	private static final Pattern LINE_BREAK_PATTERN = Pattern.compile(LINE_BREAK_REGEX);
 
 	private interface AddStatementOperation {
 		public void execute();
@@ -820,9 +821,7 @@ public class CommentTemplateCompiler {
 
 	public List<String> split(String comment) {
 		List<String> lines = new ArrayList<String>();
-		// TODO create constant
-		Pattern pattern = Pattern.compile(LINE_BREAK_REGEX);
-		Matcher matcher = pattern.matcher(comment);
+		Matcher matcher = LINE_BREAK_PATTERN.matcher(comment);
 		int lastEnd = 0;
 		while (matcher.find()) {
 			int start = matcher.start();
@@ -937,23 +936,23 @@ public class CommentTemplateCompiler {
 
 	// TODO move to JaMoPP metamodel?
 	private IdentifierReference createReference(ReferenceableElement element) {
-		IdentifierReference ref = ReferencesFactory.eINSTANCE.createIdentifierReference();
-		ref.setTarget(element);
-		return ref;
+		IdentifierReference reference = ReferencesFactory.eINSTANCE.createIdentifierReference();
+		reference.setTarget(element);
+		return reference;
 	}
 
 	// TODO move to JaMoPP metamodel
 	private MethodCall createMethodCall(Method method) {
-		MethodCall ref = ReferencesFactory.eINSTANCE.createMethodCall();
-		ref.setTarget(method);
-		return ref;
+		MethodCall methodCall = ReferencesFactory.eINSTANCE.createMethodCall();
+		methodCall.setTarget(method);
+		return methodCall;
 	}
 
 	// TODO add a setType() method to JaMoPP metamodel
 	private TypeReference createTypeReference(ConcreteClassifier concreteClassifier) {
-		ClassifierReference ref = TypesFactory.eINSTANCE.createClassifierReference();
-		ref.setTarget(concreteClassifier);
-		return ref;
+		ClassifierReference reference = TypesFactory.eINSTANCE.createClassifierReference();
+		reference.setTarget(concreteClassifier);
+		return reference;
 	}
 
 	private Statement createAppendCall(LocalVariable stringBuilder, Expression stringExpression) {
