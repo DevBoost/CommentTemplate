@@ -564,7 +564,7 @@ public class CommentTemplateCompiler {
 		int leadingTabs = 0;
 		EList<Commentable> commentables = m.getChildrenByType(Commentable.class);
 		for (Commentable commentable : commentables) {
-			List<String> comments = getRawMLComments(commentable, false);
+			List<String> comments = getRawMultiLineComments(commentable, false);
 			if (comments.isEmpty()) {
 				continue;
 			}
@@ -775,7 +775,7 @@ public class CommentTemplateCompiler {
 
 		if (type instanceof ConcreteClassifier) {
 			ConcreteClassifier classifier = (ConcreteClassifier) type;
-			EList<Member> members = classifier.getMembersByName(methodName);
+			List<Member> members = classifier.getMembersByName(methodName);
 			for (Member member : members) {
 				if (member instanceof ClassMethod) {
 					ClassMethod classMethod = (ClassMethod) member;
@@ -799,7 +799,7 @@ public class CommentTemplateCompiler {
 		comment = removeLeadingBreaks(comment);
 		comment = removeCommentDelimiters(comment);
 		
-		List<String> commentLines = split(comment);
+		List<String> commentLines = getLines(comment);
 		for (int i = 0; i < commentLines.size(); i++) {
 			String commentLine = commentLines.get(i);
 			commentLine = removeLeadingTabs(commentLine, leadingTabs, endedWithLineBreak || i > 0);
@@ -819,7 +819,11 @@ public class CommentTemplateCompiler {
 		return comment;
 	}
 
-	public List<String> split(String comment) {
+	/**
+	 * Splits the given comment at the line delimiters and returns a list of its
+	 * lines.
+	 */
+	private List<String> getLines(String comment) {
 		List<String> lines = new ArrayList<String>();
 		Matcher matcher = LINE_BREAK_PATTERN.matcher(comment);
 		int lastEnd = 0;
@@ -847,10 +851,17 @@ public class CommentTemplateCompiler {
 		return countLeadingTabs(comment, comment.indexOf("/*"));
 	}
 
+	/**
+	 * Counts the number of tab characters that appear before the start of the
+	 * comment. Only tab characters which appear without any other interleaving
+	 * characters are counted.
+	 */
 	private int countLeadingTabs(String comment, int endIndex) {
+		Character tabCharacter = new Character('\t');
+
 		int count = 0;
 		for (int i = 0; i < endIndex; i++) {
-			if (new Character('\t').equals(comment.charAt(i))) {
+			if (tabCharacter.equals(comment.charAt(i))) {
 				count++;
 			} else {
 				break;
@@ -955,31 +966,37 @@ public class CommentTemplateCompiler {
 		return reference;
 	}
 
-	private Statement createAppendCall(LocalVariable stringBuilder, Expression stringExpression) {
-		ConcreteClassifier sbClass = (ConcreteClassifier) stringBuilder.getTypeReference().getTarget();
+	private Statement createAppendCall(LocalVariable stringBuilder,
+			Expression stringExpression) {
 		
-		ExpressionStatement es = StatementsFactory.eINSTANCE.createExpressionStatement();
+		ConcreteClassifier stringBuilderClass = (ConcreteClassifier) stringBuilder
+				.getTypeReference().getTarget();
 		
-		IdentifierReference ir = createReference(stringBuilder);
-		MethodCall mc = createMethodCall((Method) sbClass.getMembersByName("append").get(0));
-		mc.getArguments().add(stringExpression);
-		ir.setNext(mc);
+		Method appendMethod = (Method) stringBuilderClass.getMembersByName("append").get(0);
+		MethodCall callToAppendMethod = createMethodCall(appendMethod);
+		callToAppendMethod.getArguments().add(stringExpression);
 
-		es.setExpression(ir);
+		IdentifierReference stringBuilderReference = createReference(stringBuilder);
+		stringBuilderReference.setNext(callToAppendMethod);
+
+		ExpressionStatement statement = StatementsFactory.eINSTANCE.createExpressionStatement();
+		statement.setExpression(stringBuilderReference);
 		
-		return es;
+		return statement;
 	}
 
 	// TODO move to JaMoPP metamodel
 	private AnnotationInstance getAnnotationInstance(AnnotableAndModifiable element,
 			ConcreteClassifier annotationType) {
+		
 		for (AnnotationInstanceOrModifier aiom : element.getAnnotationsAndModifiers()) {
 			if (aiom instanceof AnnotationInstance) {
-				AnnotationInstance ai = (AnnotationInstance) aiom;
-				InternalEObject annotation = (InternalEObject) ai.getAnnotation();
-				if (annotation.equals(annotationType) ||
-						(annotation.eIsProxy() && annotation.eProxyURI().fragment().endsWith("_" + annotationType.getName()))) {
-					return ai;
+				AnnotationInstance annotationInstance = (AnnotationInstance) aiom;
+				InternalEObject annotation = (InternalEObject) annotationInstance.getAnnotation();
+				boolean hasCorrectType = annotation.equals(annotationType) ||
+						(annotation.eIsProxy() && annotation.eProxyURI().fragment().endsWith("_" + annotationType.getName()));
+				if (hasCorrectType) {
+					return annotationInstance;
 				}
 			}
 		}
@@ -990,7 +1007,9 @@ public class CommentTemplateCompiler {
 	 * Returns all multi-line comments for the given element in their raw form.
 	 * If requested (clearComment = true), the comments are removed afterwards.
 	 */
-	private List<String> getRawMLComments(Commentable element, boolean clearComment) {
+	private List<String> getRawMultiLineComments(Commentable element,
+			boolean clearComment) {
+		
 		List<String> comments = new ArrayList<String>();
 		for (LayoutInformation layoutInformation : element.getLayoutInformations()) {
 			String text = layoutInformation.getHiddenTokenText();
@@ -1000,6 +1019,7 @@ public class CommentTemplateCompiler {
 				layoutInformation.setHiddenTokenText("");
 			}
 		}
+		
 		return comments;
 	}
 
@@ -1016,6 +1036,7 @@ public class CommentTemplateCompiler {
 		
 		IJavaTextScanner scanner = new JavaMetaInformation().createLexer();
 		scanner.setText(text);
+		
 		// retrieve all tokens from scanner
 		IJavaTextToken nextToken = scanner.getNextToken();
 		StringBuilder commentAndWhitespaceBefore = new StringBuilder();
@@ -1032,15 +1053,20 @@ public class CommentTemplateCompiler {
 	}
 	
 	/**
-	 * Finds the names of variable references (using the defined VariableAntiQuotation)
-	 * that persist Strings in the compiled template.
+	 * Finds the names of variable references (using the defined
+	 * VariableAntiQuotation) that persist Strings in the compiled template.
 	 */
-	private void findBrokenReferences(List<Expression> stringExpressions, AnnotationInstance variableAntiQuotation, Set<String> brokenVariableReferences) {
+	private void findBrokenReferences(List<Expression> stringExpressions,
+			AnnotationInstance variableAntiQuotation,
+			Set<String> brokenVariableReferences) {
+		
 		if (variableAntiQuotation == null) {
 			return;
 		}
+		
 		String regex = getStringValue(variableAntiQuotation);
 		regex = "(" + String.format("\\Q" + regex + "\\E", "\\E\\w*\\Q") + ")";
+		// TODO Cache these patterns if required
 		Pattern pattern = Pattern.compile(regex);
 		
 		for (Expression expression : stringExpressions) {
