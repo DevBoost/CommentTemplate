@@ -823,7 +823,7 @@ public class CommentTemplateCompiler {
 	 * Splits the given comment at the line delimiters and returns a list of its
 	 * lines.
 	 */
-	private List<String> getLines(String comment) {
+	public List<String> getLines(String comment) {
 		List<String> lines = new ArrayList<String>();
 		Matcher matcher = LINE_BREAK_PATTERN.matcher(comment);
 		int lastEnd = 0;

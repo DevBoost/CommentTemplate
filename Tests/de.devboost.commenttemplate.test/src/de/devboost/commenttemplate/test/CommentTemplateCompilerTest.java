@@ -36,7 +36,7 @@ public class CommentTemplateCompilerTest {
 	}
 	
 	private void assertLineSplitting(String comment, String[] expected) {
-		List<String> lines = new CommentTemplateCompiler().split(comment);
+		List<String> lines = new CommentTemplateCompiler().getLines(comment);
 		assertEquals(Arrays.asList(expected), lines);
 	}
 	
