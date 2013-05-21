@@ -273,19 +273,19 @@ public class CommentTemplateCompiler {
 			Map<Object, Object> options = new SaveOptionProvider().getSaveOptions(compiledURI);
 			compiledResource.save(options);
 		} catch (IOException e) {
-			e.printStackTrace();
+			CommentTemplatePlugin.logError("Can't save compiled template class.", e);
 		}
 		return compiledResource;
 	}
 
-	private void renameClassifier(ConcreteClassifier classifier,
-			String newClassName) {
+	private void renameClassifier(ConcreteClassifier classifier, String newName) {
+		
 		// fix the name of the compilation result (class must be renamed)
-		classifier.setName(newClassName);
+		classifier.setName(newName);
 		// fix the names of the constructors (must match the new class name)
 		List<Constructor> constructors = classifier.getConstructors();
 		for (Constructor constructor : constructors) {
-			constructor.setName(newClassName);
+			constructor.setName(newName);
 		}
 	}
 

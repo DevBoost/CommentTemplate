@@ -49,9 +49,8 @@ public class CommentTemplateBuilder {
 			}
 			return compiledResource.getURI();
 		} catch (Exception e) {
-			String message = "Exception in " + getClass().getSimpleName();
-			CommentTemplatePlugin.logError(message, e);
+			CommentTemplatePlugin.logError("Can't compile template class.", e);
+			return null;
 		}
-		return null;
 	}
 }

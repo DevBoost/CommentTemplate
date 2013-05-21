@@ -77,14 +77,15 @@ public class CommentTemplateCompilationParticipant extends AbstractCompilationPa
 		}
 	}
 
-	private void buildUnsafe(BuildContext[] files) {
+	private void buildUnsafe(BuildContext[] contexts) {
+
 		ResourceSetImpl resourceSet = new ResourceSetImpl();
 		// markers are already created by the JDT
 		Map<Object, Object> loadOptions = resourceSet.getLoadOptions();
 		loadOptions.put(IJavaOptions.DISABLE_CREATING_MARKERS_FOR_PROBLEMS,
 				Boolean.TRUE);
 
-		for (BuildContext context : files) {
+		for (BuildContext context : contexts) {
 			IFile srcFile = context.getFile();
 			IPath srcFilePath = srcFile.getFullPath();
 			URI uri = URI.createPlatformResourceURI(srcFilePath.toString(), true);
@@ -149,9 +150,9 @@ public class CommentTemplateCompilationParticipant extends AbstractCompilationPa
 			bufferedReader.close();
 			return stringBuilder.toString();
 		} catch (IOException e) {
-			CommentTemplatePlugin.logError("Can't read file " + file, e);
+			CommentTemplatePlugin.logError("Can't read file " + file.getProjectRelativePath(), e);
 		} catch (CoreException e) {
-			CommentTemplatePlugin.logError("Can't read file " + file, e);
+			CommentTemplatePlugin.logError("Can't read file " + file.getProjectRelativePath(), e);
 		}
 		return "";
 	}
@@ -175,7 +176,7 @@ public class CommentTemplateCompilationParticipant extends AbstractCompilationPa
 			newEntries[newEntries.length - 1] = entry;
 			javaProject.setRawClasspath(newEntries, null);
 		} catch (JavaModelException e) {
-			CommentTemplatePlugin.logError("Can't create CommentTemplate source folder in project " + project.getName(), e);
+			CommentTemplatePlugin.logError("Can't set classpath for project " + project.getName(), e);
 		}
 	}
 
