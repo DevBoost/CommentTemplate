@@ -62,7 +62,6 @@ import org.emftext.language.java.modifiers.AnnotationInstanceOrModifier;
 import org.emftext.language.java.references.IdentifierReference;
 import org.emftext.language.java.references.MethodCall;
 import org.emftext.language.java.references.Reference;
-import org.emftext.language.java.references.ReferenceableElement;
 import org.emftext.language.java.references.ReferencesFactory;
 import org.emftext.language.java.references.StringReference;
 import org.emftext.language.java.resource.java.IJavaTextResource;
@@ -108,6 +107,71 @@ public class CommentTemplateCompiler {
 
 	private static final String LINE_BREAK_REGEX = "(\\\r\\\n|\\\r|\\\n)";
 	private static final Pattern LINE_BREAK_PATTERN = Pattern.compile(LINE_BREAK_REGEX);
+
+	private static class AddAppendCallOperation implements
+			AddStatementOperation {
+		
+		private final LocalVariable stringBuilder;
+		private final EObject theElement;
+		private final StatementListContainer container;
+		private final List<Expression> stringExpressions;
+
+		private AddAppendCallOperation(LocalVariable stringBuilder,
+				EObject theElement, StatementListContainer container,
+				List<Expression> stringExpressions) {
+			
+			super();
+			this.stringBuilder = stringBuilder;
+			this.theElement = theElement;
+			this.container = container;
+			this.stringExpressions = stringExpressions;
+		}
+
+		@Override
+		public void execute() {
+			for (Expression stringExpression : stringExpressions) {
+				Statement statement = createAppendCall(stringBuilder, stringExpression);
+				if (statement == null) {
+					continue;
+				}
+				
+				if (theElement == null) {
+					container.getStatements().add(statement);
+				} else {
+					int idx = container.getStatements().indexOf(theElement);
+					container.getStatements().add(idx, statement);
+				}
+			}
+		}
+	
+		private Statement createAppendCall(LocalVariable stringBuilder,
+				Expression stringExpression) {
+			
+			ConcreteClassifier stringBuilderClass = (ConcreteClassifier) stringBuilder
+					.getTypeReference().getTarget();
+			
+			List<Member> appendMembers = stringBuilderClass.getMembersByName("append");
+			if (appendMembers.isEmpty()) {
+				// If the StringBuilder class cannot be found, no members called 
+				// 'append' can be found. Thus, we cannot create a respective call
+				// to the append() method.
+				return null;
+			}
+			
+			Method appendMethod = (Method) appendMembers.get(0);
+			JavaModelHelper javaModelHelper = new JavaModelHelper();
+			MethodCall callToAppendMethod = javaModelHelper.createMethodCall(appendMethod);
+			callToAppendMethod.getArguments().add(stringExpression);
+
+			IdentifierReference stringBuilderReference = javaModelHelper.createReference(stringBuilder);
+			stringBuilderReference.setNext(callToAppendMethod);
+
+			ExpressionStatement statement = StatementsFactory.eINSTANCE.createExpressionStatement();
+			statement.setExpression(stringBuilderReference);
+			
+			return statement;
+		}
+	}
 
 	private interface AddStatementOperation {
 		public void execute();
@@ -371,35 +435,42 @@ public class CommentTemplateCompiler {
 		return instances;
 	}
 
-	private void compileCommentTemplateMethod(ClassMethod m, List<AnnotationInstance> replacementRules, AnnotationInstance variableAntiQuotation, Set<String> brokenVariableReferences) {
-		ConcreteClassifier sbClass = m.getConcreteClassifier(StringBuilder.class.getName());
+	private void compileCommentTemplateMethod(ClassMethod method,
+			List<AnnotationInstance> replacementRules,
+			AnnotationInstance variableAntiQuotation,
+			Set<String> brokenVariableReferences) {
 		
-		LocalVariableStatement lvs = StatementsFactory.eINSTANCE.createLocalVariableStatement();
-		LocalVariable lv = VariablesFactory.eINSTANCE.createLocalVariable();
+		ConcreteClassifier stringBuilderClass = method.getConcreteClassifier(StringBuilder.class.getName());
 		
-		lv.setTypeReference(createTypeReference(sbClass));
-		lv.setName("__content");
+		LocalVariableStatement contentVariableStatement = StatementsFactory.eINSTANCE.createLocalVariableStatement();
+		LocalVariable contentVariable = VariablesFactory.eINSTANCE.createLocalVariable();
+		
+		contentVariable.setTypeReference(createTypeReference(stringBuilderClass));
+		contentVariable.setName("__content");
 		
 		NewConstructorCall ncc = InstantiationsFactory.eINSTANCE.createNewConstructorCall();
-		ncc.setTypeReference(createTypeReference(sbClass));
-		lv.setInitialValue(ncc);
+		ncc.setTypeReference(createTypeReference(stringBuilderClass));
+		contentVariable.setInitialValue(ncc);
 		
-		lvs.setVariable(lv);
-		m.getStatements().add(0, lvs);
+		contentVariableStatement.setVariable(contentVariable);
+		method.getStatements().add(0, contentVariableStatement);
 		
-		convertCommentsToStrings(m, lv, replacementRules, variableAntiQuotation, brokenVariableReferences);
+		convertCommentsToStrings(method, contentVariable, replacementRules, variableAntiQuotation, brokenVariableReferences);
 		
-		Statement lastStatement = m.getStatements().get(m.getStatements().size() - 1);
+		Statement lastStatement = method.getStatements().get(method.getStatements().size() - 1);
 		if (!(lastStatement instanceof Return)) {
 			return;
 		}
 		
 		Return returnStatement = (Return)  lastStatement;
 		
-		IdentifierReference ir = createReference(lv);
-		MethodCall mc = createMethodCall((Method) sbClass.getMembersByName("toString").get(0));
-		ir.setNext(mc);
-		returnStatement.setReturnValue(ir);
+		JavaModelHelper javaModelHelper = new JavaModelHelper();
+		IdentifierReference identifierReference = javaModelHelper.createReference(contentVariable);
+		List<Member> toStringMembers = stringBuilderClass.getMembersByName("toString");
+		Method toStringMethod = (Method) toStringMembers.get(0);
+		MethodCall methodCall = javaModelHelper.createMethodCall(toStringMethod);
+		identifierReference.setNext(methodCall);
+		returnStatement.setReturnValue(identifierReference);
 	}
 
 	private void convertCommentsToStrings(ClassMethod method,
@@ -537,25 +608,8 @@ public class CommentTemplateCompiler {
 			endedWithLineBreak = endsWithLineBreak(comment);
 			final EObject theElement = commentUnit.getStatement();
 			
-			operations.add(new AddStatementOperation() {
-				
-				@Override
-				public void execute() {
-					for (Expression stringExpression : stringExpressions) {
-						Statement statement = createAppendCall(stringBuilder, stringExpression);
-						if (statement == null) {
-							continue;
-						}
-						
-						if (theElement == null) {
-							container.getStatements().add(statement);
-						} else {
-							int idx = container.getStatements().indexOf(theElement);
-							container.getStatements().add(idx, statement);
-						}
-					}
-				}
-			});
+			operations.add(new AddAppendCallOperation(stringBuilder, theElement, container,
+					stringExpressions));
 		}
 		return endedWithLineBreak;
 	}
@@ -950,52 +1004,11 @@ public class CommentTemplateCompiler {
 		return null;
 	}
 
-	// TODO move to JaMoPP metamodel?
-	private IdentifierReference createReference(ReferenceableElement element) {
-		IdentifierReference reference = ReferencesFactory.eINSTANCE.createIdentifierReference();
-		reference.setTarget(element);
-		return reference;
-	}
-
-	// TODO move to JaMoPP metamodel
-	private MethodCall createMethodCall(Method method) {
-		MethodCall methodCall = ReferencesFactory.eINSTANCE.createMethodCall();
-		methodCall.setTarget(method);
-		return methodCall;
-	}
-
 	// TODO add a setType() method to JaMoPP metamodel
 	private TypeReference createTypeReference(ConcreteClassifier concreteClassifier) {
 		ClassifierReference reference = TypesFactory.eINSTANCE.createClassifierReference();
 		reference.setTarget(concreteClassifier);
 		return reference;
-	}
-
-	private Statement createAppendCall(LocalVariable stringBuilder,
-			Expression stringExpression) {
-		
-		ConcreteClassifier stringBuilderClass = (ConcreteClassifier) stringBuilder
-				.getTypeReference().getTarget();
-		
-		List<Member> appendMembers = stringBuilderClass.getMembersByName("append");
-		if (appendMembers.isEmpty()) {
-			// If the StringBuilder class cannot be found, no members called 
-			// 'append' can be found. Thus, we cannot create a respective call
-			// to the append() method.
-			return null;
-		}
-		
-		Method appendMethod = (Method) appendMembers.get(0);
-		MethodCall callToAppendMethod = createMethodCall(appendMethod);
-		callToAppendMethod.getArguments().add(stringExpression);
-
-		IdentifierReference stringBuilderReference = createReference(stringBuilder);
-		stringBuilderReference.setNext(callToAppendMethod);
-
-		ExpressionStatement statement = StatementsFactory.eINSTANCE.createExpressionStatement();
-		statement.setExpression(stringBuilderReference);
-		
-		return statement;
 	}
 
 	// TODO move to JaMoPP metamodel
