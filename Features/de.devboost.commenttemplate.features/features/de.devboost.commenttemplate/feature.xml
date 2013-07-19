@@ -26,6 +26,7 @@ Contributors:
       <import feature="org.eclipse.emf"/>
       <import feature="org.emftext.language.java"/>
       <import feature="org.emftext.language.java.jdt"/>
+      <import feature="de.devboost.eclipse.jdtutilities"/>
    </requires>
 
    <plugin
