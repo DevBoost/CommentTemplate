@@ -538,10 +538,15 @@ public class CommentTemplateCompiler {
 			final EObject theElement = commentUnit.getStatement();
 			
 			operations.add(new AddStatementOperation() {
+				
 				@Override
 				public void execute() {
 					for (Expression stringExpression : stringExpressions) {
-						final Statement statement = createAppendCall(stringBuilder, stringExpression);
+						Statement statement = createAppendCall(stringBuilder, stringExpression);
+						if (statement == null) {
+							continue;
+						}
+						
 						if (theElement == null) {
 							container.getStatements().add(statement);
 						} else {
@@ -972,7 +977,15 @@ public class CommentTemplateCompiler {
 		ConcreteClassifier stringBuilderClass = (ConcreteClassifier) stringBuilder
 				.getTypeReference().getTarget();
 		
-		Method appendMethod = (Method) stringBuilderClass.getMembersByName("append").get(0);
+		List<Member> appendMembers = stringBuilderClass.getMembersByName("append");
+		if (appendMembers.isEmpty()) {
+			// If the StringBuilder class cannot be found, no members called 
+			// 'append' can be found. Thus, we cannot create a respective call
+			// to the append() method.
+			return null;
+		}
+		
+		Method appendMethod = (Method) appendMembers.get(0);
 		MethodCall callToAppendMethod = createMethodCall(appendMethod);
 		callToAppendMethod.getArguments().add(stringExpression);
 
