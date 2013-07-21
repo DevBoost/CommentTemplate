@@ -1,7 +1,9 @@
+// BuildBoost extensions
 git:https://github.com/DevBoost/BuildBoost.git!Extensions/EMF/
 git:https://github.com/DevBoost/BuildBoost.git!Extensions/EMFText/
 git:https://github.com/DevBoost/BuildBoost.git!Extensions/UpdateSite/
 git:https://github.com/DevBoost/BuildBoost.git!Extensions/Maven/
+git:https://github.com/DevBoost/BuildBoost.git!Extensions/JUnit/
 
 // EMFText
 dynamicfile:http://www.emftext.org/update_trunk/org.emftext.deploy-complete.zip
@@ -23,11 +25,10 @@ get:http://ftp-stud.fht-esslingen.de/pub/Mirrors/eclipse/modeling/emf/validation
 get:http://ftp-stud.fht-esslingen.de/pub/Mirrors/eclipse/modeling/emf/validation/downloads/drops/1.7.0/R201306111341/emf-validation-runtime-1.7.0.zip!eclipse/features/org.eclipse.emf.validation_1.7.0.201306111341/feature.xml
 
 // For Testing
-git:https://github.com/DevBoost/BuildBoost.git!Extensions/JUnit/
 git:https://github.com/DevBoost/DevBoost-Tools.git!OnTheFlyJavac/
 
 // Feedback
-git:https://github.com/DevBoost/Feedback.git!Core/
+dynamicfile:http://www.devboost.de/eclipse-feedback/update_trunk/de.devboost.eclipse.feedback.deploy-complete.zip
 
 // JDTUtilities
 git:https://github.com/DevBoost/JDTUtilities.git!plugins/
