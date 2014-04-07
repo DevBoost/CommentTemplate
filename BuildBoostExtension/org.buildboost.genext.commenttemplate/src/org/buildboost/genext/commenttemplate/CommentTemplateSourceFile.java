@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006-2013
+ * Copyright (c) 2006-2014
  * Software Technology Group, Dresden University of Technology
  * DevBoost GmbH, Berlin, Amtsgericht Charlottenburg, HRB 140026
  * 
@@ -29,12 +29,14 @@ import de.devboost.buildboost.util.EclipsePluginHelper;
 public class CommentTemplateSourceFile extends AbstractArtifact {
 
 	private static final long serialVersionUID = -1197582465990182947L;
-	private File file;
-	private File projectDir;
+	
+	private final File file;
+	private final File projectDir;
 
 	public CommentTemplateSourceFile(File file) {
+		super();
 		this.file = file;
-		this.projectDir = new EclipsePluginHelper().findProjectDir(file);
+		this.projectDir = EclipsePluginHelper.INSTANCE.findProjectDir(file);
 		
 		// add dependency to CommentTemplate build extension to make sure the
 		// extension is in the class path of the generated build script
