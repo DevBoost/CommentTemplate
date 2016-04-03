@@ -5,7 +5,7 @@
 	<associateSite label="The Eclipse Project Updates"
 		url="http://download.eclipse.org/eclipse/updates/4.3"/>
 	<associateSite label="EMFText"
-		url="http://update.emftext.org/update"/>
+		url="http://update.emftext.org/trunk"/>
 	<associateSite label="JaMoPP"
-		url="http://update.jamopp.org/update"/>
+		url="http://update.jamopp.org/trunk"/>
 </associateSites>
